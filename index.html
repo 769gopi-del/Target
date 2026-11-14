@@ -48,15 +48,15 @@
             transition: 0.2s;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
         .admin-trigger:hover { background: rgba(255, 255, 255, 0.35); }
-        .admin-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid white;
+        .admin-emoji-logo {
+            font-size: 1.8rem;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
         .youtube-live-btn {
             background: #ef4444;
@@ -73,6 +73,21 @@
             font-size: 0.9rem;
         }
         .youtube-live-btn:hover { background: #dc2626; }
+
+        .help-trigger-btn {
+            background: #0284c7;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+        .help-trigger-btn:hover { background: #0369a1; }
 
         .user-auth { display: flex; align-items: center; gap: 10px; }
         
@@ -251,7 +266,7 @@
             font-weight: bold;
         }
 
-        /* MODAL POPUP FOR PAYMENT */
+        /* MODAL POPUPS */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -266,9 +281,11 @@
             padding: 30px;
             border-radius: 12px;
             width: 90%;
-            max-width: 420px;
+            max-width: 480px;
             text-align: center;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .qr-img {
             width: 180px;
@@ -399,8 +416,9 @@
     <h1 id="headerLogoTitle"><span id="headerLogoIcon">🎯</span> <span id="headerLogoText">TargetRank</span></h1>
     <div class="header-right">
         <a href="#" id="headerYouTubeLiveBtn" class="youtube-live-btn" target="_blank">🔴 YouTube Live</a>
+        <button class="help-trigger-btn" onclick="openHelpModal()">❓ Help Center</button>
         <button class="admin-trigger" onclick="openAdminModal()" id="adminTriggerBtn">
-            <img src="" id="adminAvatarImg" class="admin-avatar" style="display:none;">
+            <span id="adminEmojiLogoSpan" class="admin-emoji-logo">🏹</span>
             <span id="adminNameSpan">Ram</span>
         </button>
         <div class="user-auth" id="authSection">
@@ -428,6 +446,31 @@
     </div>
 </div>
 
+<!-- HELP CENTER MODAL POPUP -->
+<div class="modal-overlay" id="helpModal">
+    <div class="modal-card" style="text-align: left;">
+        <h2 style="color:var(--primary); margin-top:0; border-bottom: 2px solid var(--primary); padding-bottom: 10px;">❓ Help & Guide Center</h2>
+        <div id="helpModalContentBody" style="margin: 15px 0; font-size: 0.95rem; line-height: 1.6; color: #334155;">
+            <!-- Dynamic help steps injected here -->
+        </div>
+        <button class="btn" style="background: #64748b; margin-top: 15px;" onclick="closeHelpModal()">Close Help</button>
+    </div>
+</div>
+
+<!-- PDF VIEW MODAL FOR ADMIN -->
+<div class="modal-overlay" id="pdfViewModal">
+    <div class="modal-card">
+        <h2 style="color:var(--primary); margin-top:0;">📄 PDF Preview & Details</h2>
+        <p id="pdfViewTitleDisplay" style="font-weight: bold; font-size: 1.1rem; color: #1e293b; margin-bottom: 10px;"></p>
+        <div style="background: #f1f5f9; padding: 20px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; color: #475569;">
+            <p><b>Target Topic:</b> <span id="pdfViewTopicSpan"></span></p>
+            <p><b>Price:</b> ₹<span id="pdfViewPriceSpan"></span></p>
+            <p style="color: var(--secondary); font-weight: bold;">Status: Verified & Loaded in System ✅</p>
+        </div>
+        <button class="btn" style="background: #64748b;" onclick="closePdfViewModal()">Close Preview</button>
+    </div>
+</div>
+
 <div class="flash-news-bar">
     <span class="flash-badge">🔥 Flash News</span>
     <div style="overflow: hidden; width: 100%;">
@@ -443,7 +486,7 @@
 
     <div class="offer-banner-box" id="dynamicOfferBanner" style="display:none;">
         🎁 <span id="offerBannerText"></span> 
-        <button class="btn btn-success" style="width: auto; padding: 6px 14px; margin-left: 10px; display:inline-block;" onclick="claimYouTubeSubscribeReward()">Subscribe YouTube & Claim Reward ✅</button>
+        <button class="btn btn-success" style="width: auto; padding: 6px 14px; margin-left: 10px; display:inline-block;" onclick="claimYouTubeSubscribeReward()">Subscribe YouTube & Watch Full Video ✅</button>
     </div>
 
     <div class="alert-banner" id="statusAlert">
@@ -544,9 +587,9 @@
             <button class="btn btn-success" style="width: auto; padding: 10px 25px;" onclick="saveYouTubeOfferSettings()">Save & Publish Offer</button>
         </div>
 
-        <!-- PORTAL BRANDING -->
+        <!-- PORTAL BRANDING & ADMIN EMOJI LOGO -->
         <div class="card" style="background: #fdf4ff; border-color: #f5d0fe;">
-            <h2 style="color: #86198f; border-color: #86198f;">🎨 Branding, Admin Photo & YouTube Live Link</h2>
+            <h2 style="color: #86198f; border-color: #86198f;">🎨 Branding, Admin Emoji Logo & YouTube Live Link</h2>
             <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div class="form-group">
                     <label>Portal / Website Name</label>
@@ -561,8 +604,8 @@
                     <input type="text" id="brandAdminNameInput" placeholder="e.g. Ram">
                 </div>
                 <div class="form-group">
-                    <label>Admin Photo URL</label>
-                    <input type="text" id="brandAdminPhotoInput" placeholder="Paste image link">
+                    <label>Admin Logo Emoji (e.g. 🏹)</label>
+                    <input type="text" id="brandAdminEmojiInput" placeholder="🏹">
                 </div>
                 <div class="form-group" style="grid-column: 1 / -1;">
                     <label>YouTube Channel / Live Link</label>
@@ -570,6 +613,17 @@
                 </div>
             </div>
             <button class="btn btn-success" style="margin-top: 15px; width: auto; padding: 10px 25px;" onclick="updateBrandingSettings()">Save Branding Settings</button>
+        </div>
+
+        <!-- HELP CENTER MANAGER FOR ADMIN -->
+        <div class="card" style="background: #f0f9ff; border-color: #bae6fd;">
+            <h2 style="color: #0369a1; border-color: #0369a1;">❓ Help Center Content Manager</h2>
+            <div class="form-group">
+                <label>Add Help Step / Instruction Guide:</label>
+                <textarea id="adminHelpInput" rows="3" placeholder="e.g. Step 1: Google Login par click karke Gmail se login karein..."></textarea>
+            </div>
+            <button class="btn btn-success" style="width: auto;" onclick="adminAddHelpStep()">+ Add Help Step</button>
+            <div style="margin-top: 15px; max-height: 180px; overflow-y: auto;" id="adminHelpListContainer"></div>
         </div>
 
         <div class="card" style="background: #e0e7ff; border-color: #818cf8;">
@@ -645,7 +699,7 @@
             </div>
 
             <div class="card">
-                <h2>3. Upload PDFs (Topic-Wise)</h2>
+                <h2>3. Upload PDFs (Topic-Wise with View, Edit & Delete)</h2>
                 <div class="form-group">
                     <label>Select Subject Topic</label>
                     <select id="pdfTargetTopic"></select>
@@ -656,7 +710,7 @@
                     <input type="number" id="adminPdfPrice" placeholder="Price in ₹" style="margin-top: 8px;">
                 </div>
                 <button class="btn btn-success" onclick="adminAddPdf()">Upload PDF</button>
-                <div style="margin-top: 15px; max-height: 150px; overflow-y: auto;" id="adminPdfListContainer"></div>
+                <div style="margin-top: 15px; max-height: 180px; overflow-y: auto;" id="adminPdfListContainer"></div>
             </div>
 
             <div class="card" style="grid-column: 1 / -1;">
@@ -679,27 +733,37 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Question Text</label>
-                    <textarea id="adminQText" rows="2" placeholder="Type or paste question here..."></textarea>
+                <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Question in English</label>
+                        <textarea id="adminQTextEn" rows="2" placeholder="Question in English..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Question in Hindi (हिंदी प्रश्न)</label>
+                        <textarea id="adminQTextHi" rows="2" placeholder="हिंदी में प्रश्न..."></textarea>
+                    </div>
                 </div>
 
                 <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
-                        <label>Option A (विकल्प A)</label>
-                        <input type="text" id="adminOptA" placeholder="Option A">
+                        <label>Option A (En)</label>
+                        <input type="text" id="adminOptAEn" placeholder="Option A English">
+                        <input type="text" id="adminOptAHi" placeholder="विकल्प A हिंदी" style="margin-top:5px;">
                     </div>
                     <div class="form-group">
-                        <label>Option B (विकल्प B)</label>
-                        <input type="text" id="adminOptB" placeholder="Option B">
+                        <label>Option B (En)</label>
+                        <input type="text" id="adminOptBEn" placeholder="Option B English">
+                        <input type="text" id="adminOptBHi" placeholder="विकल्प B हिंदी" style="margin-top:5px;">
                     </div>
                     <div class="form-group">
-                        <label>Option C (विकल्प C)</label>
-                        <input type="text" id="adminOptC" placeholder="Option C">
+                        <label>Option C (En)</label>
+                        <input type="text" id="adminOptCEn" placeholder="Option C English">
+                        <input type="text" id="adminOptCHi" placeholder="विकल्प C हिंदी" style="margin-top:5px;">
                     </div>
                     <div class="form-group">
-                        <label>Option D (विकल्प D)</label>
-                        <input type="text" id="adminOptD" placeholder="Option D">
+                        <label>Option D (En)</label>
+                        <input type="text" id="adminOptDEn" placeholder="Option D English">
+                        <input type="text" id="adminOptDHi" placeholder="विकल्प D हिंदी" style="margin-top:5px;">
                     </div>
                 </div>
 
@@ -708,10 +772,10 @@
                     <input type="number" id="adminQCorrect" min="0" max="3" value="0">
                 </div>
 
-                <button class="btn btn-success" onclick="adminAddQuestion()">Add Question Securely</button>
+                <button class="btn btn-success" onclick="adminAddQuestion()">Add / Update Question Securely</button>
                 
-                <h3 style="margin-top: 20px;">Manage Stored Questions & Tests:</h3>
-                <div id="adminQuestionListContainer" style="max-height: 250px; overflow-y: auto;"></div>
+                <h3 style="margin-top: 20px;">Manage Stored Questions & Tests (View, Edit & Delete):</h3>
+                <div id="adminQuestionListContainer" style="max-height: 300px; overflow-y: auto;"></div>
             </div>
         </div>
     </div>
@@ -723,6 +787,7 @@
     let userSubscriptions = {}; 
     let selectedExamKey = "";
     let currentPendingPayment = null;
+    let editingQuestionRef = null;
 
     if(!localStorage.getItem('targetrank_admin_pass')) {
         localStorage.setItem('targetrank_admin_pass', 'admin123');
@@ -732,7 +797,7 @@
         name: "TargetRank",
         icon: "🎯",
         adminName: "Ram",
-        adminPhoto: "",
+        adminEmoji: "🏹",
         youtubeLink: "https://www.youtube.com"
     };
 
@@ -744,9 +809,17 @@
 
     let youtubeOffer = JSON.parse(localStorage.getItem('targetrank_yt_offer')) || {
         active: "yes",
-        text: "Hamara YouTube channel subscribe karne par Full Mock Test #2 bilkul FREE milega!",
+        text: "Hamara YouTube channel subscribe karne aur full video dekhne par Full Mock Test #2 bilkul FREE unlock ho jayega!",
         reward: "mock"
     };
+
+    let helpStepsList = JSON.parse(localStorage.getItem('targetrank_help_steps')) || [
+        "Step 1: Top right corner par 'Google Login' button par click karke apna Gmail ID enter kareین.",
+        "Step 2: Dashboard par apne pasand ka Exam select karein aur syllabus ya free PDFs dekhein.",
+        "Step 3: Test dene ke liye 'Live Mock Test' tab par click karein. Topic-wise Set #1 aur Full Mock Set #1 bilkul FREE hain.",
+        "Step 4: Exam dete samay aap kisi bhi samay upar diye language selector se **Hindi** ya **English** switch kar sakte hain.",
+        "Step 5: YouTube offer ke madhyam se channel subscribe karke aap extra free tests unlock kar sakte hain."
+    ];
 
     let defaultExamsList = [
         "Railway - RRB NTPC CBT 1",
@@ -788,6 +861,7 @@
         applyBrandingToUI();
         applyPaymentConfigToUI();
         applyYouTubeOfferUI();
+        renderHelpModalContent();
         if(allExamsList.length > 0) {
             selectedExamKey = allExamsList[0];
         }
@@ -800,20 +874,13 @@
         document.getElementById('headerLogoIcon').innerText = siteBranding.icon;
         document.getElementById('headerLogoText').innerText = siteBranding.name;
         document.getElementById('adminNameSpan').innerText = siteBranding.adminName;
+        document.getElementById('adminEmojiLogoSpan').innerText = siteBranding.adminEmoji || "🏹";
         document.getElementById('headerYouTubeLiveBtn').href = siteBranding.youtubeLink || "https://www.youtube.com";
-
-        let avatarImg = document.getElementById('adminAvatarImg');
-        if(siteBranding.adminPhoto && siteBranding.adminPhoto.trim() !== "") {
-            avatarImg.src = siteBranding.adminPhoto;
-            avatarImg.style.display = "inline-block";
-        } else {
-            avatarImg.style.display = "none";
-        }
 
         document.getElementById('brandSiteNameInput').value = siteBranding.name;
         document.getElementById('brandLogoEmojiInput').value = siteBranding.icon;
         document.getElementById('brandAdminNameInput').value = siteBranding.adminName;
-        document.getElementById('brandAdminPhotoInput').value = siteBranding.adminPhoto || "";
+        document.getElementById('brandAdminEmojiInput').value = siteBranding.adminEmoji || "🏹";
         document.getElementById('brandYouTubeLinkInput').value = siteBranding.youtubeLink || "";
     }
 
@@ -874,7 +941,7 @@
                 if(!freeFullMocks[selectedExamKey]) freeFullMocks[selectedExamKey] = [1];
                 if(!freeFullMocks[selectedExamKey].includes(2)) freeFullMocks[selectedExamKey].push(2);
                 saveDB();
-                alert("🎉 Badhai ho! YouTube channel subscribe karne ke liye Full Mock Test #2 bilkul FREE unlock kar diya gaya hai!");
+                alert("🎉 Badhai ho! YouTube channel subscribe aur full video dekhne ke liye Full Mock Test #2 bilkul FREE unlock kar diya gaya hai!");
             } else {
                 userSubscriptions.yt_reward_pdf = true;
                 alert("🎉 Badhai ho! YouTube subscribe karne ke liye sabhi PDFs free download ke liye unlock ho gayi hain!");
@@ -883,27 +950,77 @@
         }, 3000);
     }
 
+    function openHelpModal() {
+        renderHelpModalContent();
+        document.getElementById('helpModal').style.display = 'flex';
+    }
+
+    function closeHelpModal() {
+        document.getElementById('helpModal').style.display = 'none';
+    }
+
+    function renderHelpModalContent() {
+        let html = '';
+        helpStepsList.forEach((step, i) => {
+            html += `<p style="margin-bottom: 12px;">✅ <b>${step}</b></p>`;
+        });
+        let bodyEl = document.getElementById('helpModalContentBody');
+        if(bodyEl) bodyEl.innerHTML = html;
+        renderAdminHelpList();
+    }
+
+    function adminAddHelpStep() {
+        let txt = document.getElementById('adminHelpInput').value.trim();
+        if(!txt) return alert("Kripya help step text enter karein!");
+        helpStepsList.push(txt);
+        localStorage.setItem('targetrank_help_steps', JSON.stringify(helpStepsList));
+        document.getElementById('adminHelpInput').value = "";
+        renderHelpModalContent();
+        alert("✅ Help step successfully added!");
+    }
+
+    function deleteHelpStep(idx) {
+        helpStepsList.splice(idx, 1);
+        localStorage.setItem('targetrank_help_steps', JSON.stringify(helpStepsList));
+        renderHelpModalContent();
+    }
+
+    function renderAdminHelpList() {
+        let html = '';
+        helpStepsList.forEach((step, i) => {
+            html += `
+                <div class="list-item-admin">
+                    <span style="font-size:0.85rem;">${step}</span>
+                    <button class="btn btn-danger" style="width:auto; padding:4px 8px; font-size:0.75rem;" onclick="deleteHelpStep(${i})">Delete</button>
+                </div>
+            `;
+        });
+        let container = document.getElementById('adminHelpListContainer');
+        if(container) container.innerHTML = html;
+    }
+
     function updateBrandingSettings() {
         let newName = document.getElementById('brandSiteNameInput').value.trim();
         let newIcon = document.getElementById('brandLogoEmojiInput').value.trim();
         let newAdmin = document.getElementById('brandAdminNameInput').value.trim();
-        let newPhoto = document.getElementById('brandAdminPhotoInput').value.trim();
+        let newEmoji = document.getElementById('brandAdminEmojiInput').value.trim();
         let newYt = document.getElementById('brandYouTubeLinkInput').value.trim();
 
-        if(!newName || !newIcon || !newAdmin) {
+        if(!newName || !newIcon || !newAdmin || !newEmoji) {
             return alert("Kripya main branding fields bharein!");
         }
 
-        siteBranding = { name: newName, icon: newIcon, adminName: newAdmin, adminPhoto: newPhoto, youtubeLink: newYt };
+        siteBranding = { name: newName, icon: newIcon, adminName: newAdmin, adminEmoji: newEmoji, youtubeLink: newYt };
         localStorage.setItem('targetrank_brand', JSON.stringify(siteBranding));
         applyBrandingToUI();
-        alert("✅ Branding aur Admin settings successfully update ho gayi hain!");
+        alert("✅ Branding aur Admin emoji successfully update ho gaye hain!");
     }
 
     let countdownInterval = null;
     let testSubmitted = false;
     let activeTestData = null;
     let currentTestTimerSeconds = 0;
+    let currentTestLanguage = 'hi'; // Default language
 
     let defaultExamDatabase = {
         "Railway - RRB NTPC CBT 1": {
@@ -1141,6 +1258,33 @@
             `;
         });
         document.getElementById('pdfSection').innerHTML = pdfHtml;
+    }
+
+    // Admin PDF View Modal
+    function viewAdminPdf(index) {
+        let pdf = examDatabase[selectedExamKey].pdfs[index];
+        document.getElementById('pdfViewTitleDisplay').innerText = pdf.name;
+        document.getElementById('pdfViewTopicSpan').innerText = pdf.topic;
+        document.getElementById('pdfViewPriceSpan').innerText = pdf.price;
+        document.getElementById('pdfViewModal').style.display = 'flex';
+    }
+
+    function closePdfViewModal() {
+        document.getElementById('pdfViewModal').style.display = 'none';
+    }
+
+    function editAdminPdf(index) {
+        let pdf = examDatabase[selectedExamKey].pdfs[index];
+        let newName = prompt("Edit PDF Title:", pdf.name);
+        let newPrice = prompt("Edit PDF Price (₹):", pdf.price);
+        if(newName !== null && newPrice !== null) {
+            pdf.name = newName.trim();
+            pdf.price = parseFloat(newPrice) || 0;
+            saveDB();
+            renderPdfs();
+            renderAdminLists();
+            alert("✅ PDF successfully updated!");
+        }
     }
 
     function renderPlans() {
@@ -1419,7 +1563,33 @@
             currentTestTimerSeconds = 5400; // 90 mins
         }
 
+        currentTestLanguage = 'hi'; // Default start language
         renderActiveTestInterface(type, setNum);
+    }
+
+    function toggleTestLanguage(lang) {
+        currentTestLanguage = lang;
+        // Refresh question texts and options dynamically
+        activeTestData.forEach((q, idx) => {
+            let qHeader = document.getElementById(`q_text_header_${idx}`);
+            let optsContainer = document.getElementById(`q_opts_container_${idx}`);
+            if(qHeader && optsContainer) {
+                let qText = (currentTestLanguage === 'hi' && q.hi && q.hi.q) ? q.hi.q : q.en.q;
+                let opts = (currentTestLanguage === 'hi' && q.hi && q.hi.opts) ? q.hi.opts : q.en.opts;
+                qHeader.innerText = `Q${idx+1}. ${qText}`;
+                
+                let optsHtml = '';
+                opts.forEach((opt, oIdx) => {
+                    let isChecked = document.querySelector(`input[name="q_${idx}"][value="${oIdx}"]`)?.checked ? 'checked' : '';
+                    optsHtml += `
+                        <label>
+                            <input type="radio" name="q_${idx}" value="${oIdx}" ${isChecked}> ${String.fromCharCode(65 + oIdx)}) ${opt}
+                        </label>
+                    `;
+                });
+                optsContainer.innerHTML = optsHtml;
+            }
+        });
     }
 
     function renderActiveTestInterface(type, setNum) {
@@ -1427,18 +1597,26 @@
         let html = `
             <div class="test-header">
                 <h3>📖 Live Test: ${selectedExamKey} (${type === 'topic' ? 'Topic Practice' : 'Full Mock #' + setNum})</h3>
-                <div class="timer-box" id="timerDisplay">90:00</div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div style="font-size: 0.9rem; font-weight: bold;">Language: 
+                        <select id="testLangSelector" onchange="toggleTestLanguage(this.value)" style="padding: 4px 8px; font-weight: bold;">
+                            <option value="hi" ${currentTestLanguage==='hi'?'selected':''}>हिंदी (Hindi)</option>
+                            <option value="en" ${currentTestLanguage==='en'?'selected':''}>English</option>
+                        </select>
+                    </div>
+                    <div class="timer-box" id="timerDisplay">90:00</div>
+                </div>
             </div>
             <form id="liveTestForm">
         `;
 
         activeTestData.forEach((q, idx) => {
-            let qText = q.hi ? q.hi.q : q.en.q;
-            let opts = q.hi ? q.hi.opts : q.en.opts;
+            let qText = (currentTestLanguage === 'hi' && q.hi && q.hi.q) ? q.hi.q : q.en.q;
+            let opts = (currentTestLanguage === 'hi' && q.hi && q.hi.opts) ? q.hi.opts : q.en.opts;
             html += `
                 <div class="question-box" data-qid="${q.id}" data-idx="${idx}">
-                    <h3>Q${idx+1}. ${qText}</h3>
-                    <div class="options">
+                    <h3 id="q_text_header_${idx}">Q${idx+1}. ${qText}</h3>
+                    <div class="options" id="q_opts_container_${idx}">
             `;
             opts.forEach((opt, oIdx) => {
                 html += `
@@ -1487,8 +1665,8 @@
             let selected = document.querySelector(`input[name="q_${idx}"]:checked`);
             let userAns = selected ? parseInt(selected.value) : -1;
             let correctAns = q.correct;
-            let qText = q.hi ? q.hi.q : q.en.q;
-            let opts = q.hi ? q.hi.opts : q.en.opts;
+            let qText = q.en.q;
+            let opts = q.en.opts;
 
             let statusClass = "skipped";
             let statusText = "⚠️ Skipped (Not Answered)";
@@ -1570,22 +1748,29 @@
         let type = document.getElementById('adminTestType').value;
         let topic = document.getElementById('adminQTopic').value;
         let testNum = parseInt(document.getElementById('adminTestNum').value);
-        let qText = document.getElementById('adminQText').value.trim();
         
-        let optA = document.getElementById('adminOptA').value.trim();
-        let optB = document.getElementById('adminOptB').value.trim();
-        let optC = document.getElementById('adminOptC').value.trim();
-        let optD = document.getElementById('adminOptD').value.trim();
+        let qEn = document.getElementById('adminQTextEn').value.trim();
+        let qHi = document.getElementById('adminQTextHi').value.trim();
+        
+        let optAEn = document.getElementById('adminOptAEn').value.trim();
+        let optAHi = document.getElementById('adminOptAHi').value.trim();
+        let optBEn = document.getElementById('adminOptBEn').value.trim();
+        let optBHi = document.getElementById('adminOptBHi').value.trim();
+        let optCEn = document.getElementById('adminOptCEn').value.trim();
+        let optCHi = document.getElementById('adminOptCHi').value.trim();
+        let optDEn = document.getElementById('adminOptDEn').value.trim();
+        let optDHi = document.getElementById('adminOptDHi').value.trim();
+        
         let correct = parseInt(document.getElementById('adminQCorrect').value);
 
-        if(!qText || !optA || !optB || !optC || !optD) {
-            return alert("❌ Kripya question text aur sabhi 4 options dhyan se bharein!");
+        if(!qEn || !optAEn || !optBEn || !optCEn || !optDEn) {
+            return alert("❌ Kripya English question aur sabhi options bharein!");
         }
 
         let qObj = {
-            id: Date.now(),
-            hi: { q: qText, opts: [optA, optB, optC, optD] },
-            en: { q: qText, opts: [optA, optB, optC, optD] },
+            id: editingQuestionRef ? editingQuestionRef.id : Date.now(),
+            hi: { q: qHi || qEn, opts: [optAHi || optAEn, optBHi || optBEn, optCHi || optCEn, optDHi || optDEn] },
+            en: { q: qEn, opts: [optAEn, optBEn, optCEn, optDEn] },
             correct: correct
         };
 
@@ -1594,23 +1779,75 @@
             if(!examDatabase[selectedExamKey].topicTests[topic]) examDatabase[selectedExamKey].topicTests[topic] = {};
             if(!examDatabase[selectedExamKey].topicTests[topic][testNum]) examDatabase[selectedExamKey].topicTests[topic][testNum] = [];
             
-            examDatabase[selectedExamKey].topicTests[topic][testNum].push(qObj);
+            if(editingQuestionRef && editingQuestionRef.type === 'topic') {
+                let idx = examDatabase[selectedExamKey].topicTests[topic][testNum].findIndex(q => q.id === editingQuestionRef.id);
+                if(idx > -1) examDatabase[selectedExamKey].topicTests[topic][testNum][idx] = qObj;
+                else examDatabase[selectedExamKey].topicTests[topic][testNum].push(qObj);
+            } else {
+                examDatabase[selectedExamKey].topicTests[topic][testNum].push(qObj);
+            }
         } else {
             if(!examDatabase[selectedExamKey].fullTests) examDatabase[selectedExamKey].fullTests = {};
             if(!examDatabase[selectedExamKey].fullTests[testNum]) examDatabase[selectedExamKey].fullTests[testNum] = [];
             
-            examDatabase[selectedExamKey].fullTests[testNum].push(qObj);
+            if(editingQuestionRef && editingQuestionRef.type === 'full') {
+                let idx = examDatabase[selectedExamKey].fullTests[testNum].findIndex(q => q.id === editingQuestionRef.id);
+                if(idx > -1) examDatabase[selectedExamKey].fullTests[testNum][idx] = qObj;
+                else examDatabase[selectedExamKey].fullTests[testNum].push(qObj);
+            } else {
+                examDatabase[selectedExamKey].fullTests[testNum].push(qObj);
+            }
         }
 
+        editingQuestionRef = null;
         saveDB();
         renderAdminLists();
-        alert("✅ Question successfully added to database!");
+        alert("✅ Question successfully saved securely!");
         
-        document.getElementById('adminQText').value = "";
-        document.getElementById('adminOptA').value = "";
-        document.getElementById('adminOptB').value = "";
-        document.getElementById('adminOptC').value = "";
-        document.getElementById('adminOptD').value = "";
+        document.getElementById('adminQTextEn').value = "";
+        document.getElementById('adminQTextHi').value = "";
+        document.getElementById('adminOptAEn').value = ""; document.getElementById('adminOptAHi').value = "";
+        document.getElementById('adminOptBEn').value = ""; document.getElementById('adminOptBHi').value = "";
+        document.getElementById('adminOptCEn').value = ""; document.getElementById('adminOptCHi').value = "";
+        document.getElementById('adminOptDEn').value = ""; document.getElementById('adminOptDHi').value = "";
+    }
+
+    function editQuestion(type, topic, testNum, qId) {
+        let qList = (type === 'topic') ? examDatabase[selectedExamKey].topicTests[topic][testNum] : examDatabase[selectedExamKey].fullTests[testNum];
+        let q = qList.find(item => item.id === qId);
+        if(!q) return;
+
+        editingQuestionRef = { type, topic, testNum, id: qId };
+        document.getElementById('adminTestType').value = type;
+        toggleTestNumberDropdown();
+        if(type === 'topic') document.getElementById('adminQTopic').value = topic;
+        document.getElementById('adminTestNum').value = testNum;
+
+        document.getElementById('adminQTextEn').value = q.en.q;
+        document.getElementById('adminQTextHi').value = q.hi.q;
+        document.getElementById('adminOptAEn').value = q.en.opts[0]; document.getElementById('adminOptAHi').value = q.hi.opts[0];
+        document.getElementById('adminOptBEn').value = q.en.opts[1]; document.getElementById('adminOptBHi').value = q.hi.opts[1];
+        document.getElementById('adminOptCEn').value = q.en.opts[2]; document.getElementById('adminOptCHi').value = q.hi.opts[2];
+        document.getElementById('adminOptDEn').value = q.en.opts[3]; document.getElementById('adminOptDHi').value = q.hi.opts[3];
+        document.getElementById('adminQCorrect').value = q.correct;
+
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        alert("⚠️ Question loaded into form for editing. Make changes and click 'Add / Update Question Securely'.");
+    }
+
+    function deleteQuestion(type, topic, testNum, qId) {
+        if(confirm("Kya aap is question ko delete karna chahte hain?")) {
+            if(type === 'topic') {
+                let list = examDatabase[selectedExamKey].topicTests[topic][testNum];
+                examDatabase[selectedExamKey].topicTests[topic][testNum] = list.filter(item => item.id !== qId);
+            } else {
+                let list = examDatabase[selectedExamKey].fullTests[testNum];
+                examDatabase[selectedExamKey].fullTests[testNum] = list.filter(item => item.id !== qId);
+            }
+            saveDB();
+            renderAdminLists();
+            alert("✅ Question deleted successfully!");
+        }
     }
 
     function renderAdminLists() {
@@ -1624,7 +1861,15 @@
 
         let pdfListHtml = '';
         (currentData.pdfs || []).forEach((p, i) => {
-            pdfListHtml += `<div class="list-item-admin"><span>${p.name} (${p.topic}) - ₹${p.price}</span> <button class="btn btn-danger" style="width:auto; padding:4px 8px; font-size:0.8rem;" onclick="deletePdf(${i})">Delete</button></div>`;
+            pdfListHtml += `
+                <div class="list-item-admin">
+                    <span>${p.name} (${p.topic}) - ₹${p.price}</span> 
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn btn-success" style="width:auto; padding:4px 8px; font-size:0.8rem;" onclick="viewAdminPdf(${i})">View</button>
+                        <button class="btn btn-warning" style="width:auto; padding:4px 8px; font-size:0.8rem;" onclick="editAdminPdf(${i})">Edit</button>
+                        <button class="btn btn-danger" style="width:auto; padding:4px 8px; font-size:0.8rem;" onclick="deletePdf(${i})">Delete</button>
+                    </div>
+                </div>`;
         });
         document.getElementById('adminPdfListContainer').innerHTML = pdfListHtml || '<p style="color:#64748b; font-size:0.85rem;">No PDFs uploaded.</p>';
 
@@ -1632,14 +1877,32 @@
         let topicTests = currentData.topicTests || {};
         for(let top in topicTests) {
             for(let setNum in topicTests[top]) {
-                let len = topicTests[top][setNum].length;
-                qCountHtml += `<div class="list-item-admin"><span>Topic Practice [${top}] Set #${setNum}</span> <b>${len} Questions</b></div>`;
+                let qList = topicTests[top][setNum];
+                qList.forEach(q => {
+                    qCountHtml += `
+                        <div class="list-item-admin">
+                            <span style="font-size:0.85rem;">[Topic: ${top} | Set #${setNum}] ${q.en.q.substring(0, 45)}...</span>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn btn-warning" style="width:auto; padding:2px 6px; font-size:0.75rem;" onclick="editQuestion('topic', '${top}', ${setNum}, ${q.id})">Edit</button>
+                                <button class="btn btn-danger" style="width:auto; padding:2px 6px; font-size:0.75rem;" onclick="deleteQuestion('topic', '${top}', ${setNum}, ${q.id})">Delete</button>
+                            </div>
+                        </div>`;
+                });
             }
         }
         let fullTests = currentData.fullTests || {};
         for(let setNum in fullTests) {
-            let len = fullTests[setNum].length;
-            qCountHtml += `<div class="list-item-admin"><span>Full CBT Mock Test #${setNum}</span> <b>${len} Questions</b></div>`;
+            let qList = fullTests[setNum];
+            qList.forEach(q => {
+                qCountHtml += `
+                    <div class="list-item-admin">
+                        <span style="font-size:0.85rem;">[Full Mock #${setNum}] ${q.en.q.substring(0, 45)}...</span>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn btn-warning" style="width:auto; padding:2px 6px; font-size:0.75rem;" onclick="editQuestion('full', '', ${setNum}, ${q.id})">Edit</button>
+                            <button class="btn btn-danger" style="width:auto; padding:2px 6px; font-size:0.75rem;" onclick="deleteQuestion('full', '', ${setNum}, ${q.id})">Delete</button>
+                        </div>
+                    </div>`;
+            });
         }
         document.getElementById('adminQuestionListContainer').innerHTML = qCountHtml || '<p style="color:#64748b; font-size:0.85rem;">No test questions added yet.</p>';
     }
