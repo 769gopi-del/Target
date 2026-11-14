@@ -561,8 +561,8 @@
                     <input type="text" id="brandAdminNameInput" placeholder="e.g. Ram">
                 </div>
                 <div class="form-group">
-                    <label>Admin Photo URL</label>
-                    <input type="text" id="brandAdminPhotoInput" placeholder="Paste image link">
+                    <label>Logo Icon (Emoji)</label>
+                <input type="text" id="brandAdminEmojiInput" placeholder="Enter Logo or Emoji (e.g. 🎯 or 👑)">
                 </div>
                 <div class="form-group" style="grid-column: 1 / -1;">
                     <label>YouTube Channel / Live Link</label>
@@ -646,6 +646,7 @@
 
             <div class="card">
                 <h2>3. Upload PDFs (Topic-Wise)</h2>
+                <div id="managed-pdfs-container" style="margin-top: 15px;"></div>
                 <div class="form-group">
                     <label>Select Subject Topic</label>
                     <select id="pdfTargetTopic"></select>
@@ -704,13 +705,14 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Correct Option Index (0 = A, 1 = B, 2 = C, 3 = D)</label>
+                    <label>Correct Option Index (1 = A, 2 = B, 3 = C, 4 = D)</label>
                     <input type="number" id="adminQCorrect" min="0" max="3" value="0">
                 </div>
 
                 <button class="btn btn-success" onclick="adminAddQuestion()">Add Question Securely</button>
                 
                 <h3 style="margin-top: 20px;">Manage Stored Questions & Tests:</h3>
+                <div id="managed-tests-container" style="margin-top: 15px;"></div>
                 <div id="adminQuestionListContainer" style="max-height: 250px; overflow-y: auto;"></div>
             </div>
         </div>
@@ -1655,7 +1657,134 @@
         examDatabase[selectedExamKey].pdfs.splice(idx, 1);
         saveDB();
         renderPdfs();
-        renderAdminLists();
+        renderAdminLists();<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderManagedTests();
+  });
+
+  function renderManagedTests() {
+    const container = document.getElementById('managed-tests-container');
+    if (!container) return;
+
+    // LocalStorage se saved tests fetch karna
+    let savedTests = JSON.parse(localStorage.getItem('targetRankTests')) || [];
+    
+    if (savedTests.length === 0) {
+      container.innerHTML = "<p style='color: #666; font-size: 14px; padding: 10px;'>Abhi koi custom test save nahi hai.</p>";
+      return;
+    }
+
+    // Har test ke aage View/Edit aur Delete ka button generate karna
+    container.innerHTML = savedTests.map((test, index) => `
+      <div style="background: #fff; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+        <div>
+          <strong style="color: #333; font-size: 14px;">${test.setName || 'Test Set ' + (index + 1)}</strong> 
+          <span style="font-size: 12px; color: #666; margin-left: 8px; background: #f1f3f5; padding: 2px 6px; border-radius: 4px;">${test.questions ? test.questions.length : 0} Questions</span>
+        </div>
+        <div>
+          <button onclick="viewOrEditTest(${index})" style="background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 5px; font-size: 13px; font-weight: 500;">View / Edit</button>
+          <button onclick="deleteStoredTest(${index})" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Test delete karne ka function
+  function deleteStoredTest(index) {
+    let savedTests = JSON.parse(localStorage.getItem('targetRankTests')) || [];
+    if(confirm('Kya aap is test set ko delete karna chahte hain?')) {
+      savedTests.splice(index, 1);
+      localStorage.setItem('targetRankTests', JSON.stringify(savedTests));
+      renderManagedTests();
+      alert('Test successfully delete ho gaya!');
+      location.reload();
+    }
+  }
+
+  // Test view ya edit karne ka function
+  function viewOrEditTest(index) {
+    let savedTests = JSON.parse(localStorage.getItem('targetRankTests')) || [];
+    let test = savedTests[index];
+    if(test && test.questions) {
+      let qText = prompt("Edit karne ke liye naya question data (JSON format) daalein:", JSON.stringify(test.questions));
+      if(qText !== null) {
+        try {
+          test.questions = JSON.parse(qText);
+          savedTests[index] = test;
+          localStorage.setItem('targetRankTests', JSON.stringify(savedTests));
+          renderManagedTests();
+          alert('Question successfully update ho gaya!');
+          location.reload();
+        } catch(e) {
+          alert('Invalid format! Update nahi ho saka.');
+        }
+      }
+    } else {
+      alert('Is test mein koi custom question data nahi mila.');
+    }
+  }
+</script>
+    <script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderManagedPDFs();
+  });
+
+  // Uploaded PDFs ko 1-by-1 dikhane aur manage karne ka function
+  function renderManagedPDFs() {
+    const pdfContainer = document.getElementById('managed-pdfs-container');
+    if (!pdfContainer) return;
+
+    let savedPDFs = JSON.parse(localStorage.getItem('targetRankPDFs')) || [];
+    
+    if (savedPDFs.length === 0) {
+      return; // Agar koi custom PDF save nahi hai toh default dikhne dein
+    }
+
+    pdfContainer.innerHTML = savedPDFs.map((pdf, index) => `
+      <div style="background: #fff; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <strong style="color: #333; font-size: 14px;">📄 ${pdf.title || 'PDF Notes ' + (index + 1)}</strong> 
+          <span style="font-size: 12px; color: #666; margin-left: 8px; background: #f1f3f5; padding: 2px 6px; border-radius: 4px;">₹${pdf.price || 0}</span>
+        </div>
+        <div>
+          <button onclick="viewOrEditPDF(${index})" style="background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 5px; font-size: 13px;">View / Edit</button>
+          <button onclick="deleteStoredPDF(${index})" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // PDF delete karne ka function
+  function deleteStoredPDF(index) {
+    let savedPDFs = JSON.parse(localStorage.getItem('targetRankPDFs')) || [];
+    if(confirm('Kya aap is PDF ko delete karna chahte hain?')) {
+      savedPDFs.splice(index, 1);
+      localStorage.setItem('targetRankPDFs', JSON.stringify(savedPDFs));
+      renderManagedPDFs();
+      alert('PDF successfully delete ho gayi!');
+      location.reload();
+    }
+  }
+
+  // PDF view ya edit karne ka function
+  function viewOrEditPDF(index) {
+    let savedPDFs = JSON.parse(localStorage.getItem('targetRankPDFs')) || [];
+    let pdf = savedPDFs[index];
+    if(pdf) {
+      let newTitle = prompt("PDF ka naya Title daalein:", pdf.title);
+      let newPrice = prompt("PDF ki nayi Price daalein (₹):", pdf.price);
+      if(newTitle !== null && newPrice !== null) {
+        pdf.title = newTitle;
+        pdf.price = newPrice;
+        savedPDFs[index] = pdf;
+        localStorage.setItem('targetRankPDFs', JSON.stringify(savedPDFs));
+        renderManagedPDFs();
+        alert('PDF successfully update ho gayi!');
+        location.reload();
+      }
+    }
+  }
+</script>
     }
 </script>
 
