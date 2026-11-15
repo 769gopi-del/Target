@@ -408,6 +408,14 @@
             margin-bottom: 15px;
             border-left: 5px solid var(--primary);
         }
+        .unlock-card {
+            background: #fffbeb;
+            border: 2px dashed #f59e0b;
+            padding: 30px;
+            text-align: center;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
@@ -450,24 +458,34 @@
 <div class="modal-overlay" id="helpModal">
     <div class="modal-card" style="text-align: left;">
         <h2 style="color:var(--primary); margin-top:0; border-bottom: 2px solid var(--primary); padding-bottom: 10px;">❓ Help & Guide Center</h2>
-        <div id="helpModalContentBody" style="margin: 15px 0; font-size: 0.95rem; line-height: 1.6; color: #334155;">
-            <!-- Dynamic help steps injected here -->
-        </div>
+        <div id="helpModalContentBody" style="margin: 15px 0; font-size: 0.95rem; line-height: 1.6; color: #334155;"></div>
         <button class="btn" style="background: #64748b; margin-top: 15px;" onclick="closeHelpModal()">Close Help</button>
     </div>
 </div>
 
-<!-- PDF VIEW MODAL FOR ADMIN -->
+<!-- PDF VIEW MODAL FOR ADMIN & USER (UPDATED WITH SHART / UNLOCK GATE) -->
 <div class="modal-overlay" id="pdfViewModal">
-    <div class="modal-card">
-        <h2 style="color:var(--primary); margin-top:0;">📄 PDF Preview & Details</h2>
+    <div class="modal-card" style="max-width: 600px;">
+        <h2 style="color:var(--primary); margin-top:0;">📄 PDF View & Question-Answer Access</h2>
         <p id="pdfViewTitleDisplay" style="font-weight: bold; font-size: 1.1rem; color: #1e293b; margin-bottom: 10px;"></p>
-        <div style="background: #f1f5f9; padding: 20px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; color: #475569;">
-            <p><b>Target Topic:</b> <span id="pdfViewTopicSpan"></span></p>
-            <p><b>Price:</b> ₹<span id="pdfViewPriceSpan"></span></p>
-            <p style="color: var(--secondary); font-weight: bold;">Status: Verified & Loaded in System ✅</p>
+        
+        <!-- SHART / UNLOCK REQUIREMENT GATE -->
+        <div id="pdfLockedShartBox" style="background: #fffbeb; border: 2px dashed #f59e0b; padding: 20px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+            <h3 style="color: #b45309; margin-top:0;">🔒 Shart (Unlock Condition) Required!</h3>
+            <p style="font-size: 0.9rem; color: #78350f;">PDF ke andar ke **Question & Answers** dekhne ke liye shart poori karein:</p>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 15px;">
+                <button class="btn btn-warning" style="width: auto; padding: 8px 14px;" onclick="claimYouTubeSubscribeRewardFromModal()">🔴 YouTube Subscribe & Unlock</button>
+                <button class="btn btn-success" style="width: auto; padding: 8px 14px;" onclick="payForPdfFromModal()">💳 Pay ₹<span id="pdfModalPriceSpan"></span> to Unlock</button>
+            </div>
         </div>
-        <button class="btn" style="background: #64748b;" onclick="closePdfViewModal()">Close Preview</button>
+
+        <!-- ACTUAL CONTENT AREA (HIDDEN UNTIL SHART IS FULFILLED) -->
+        <div id="pdfUnlockedContentArea" style="display: none; background: #f1f5f9; padding: 20px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; color: #475569; text-align: left; max-height: 350px; overflow-y: auto;">
+            <p style="color: var(--secondary); font-weight: bold;">Status: Shart Puri Ho Gayi Hai! Q&A Unlocked ✅</p>
+            <div id="pdfContentQuestionsList"></div>
+        </div>
+
+        <button class="btn" style="background: #64748b;" onclick="closePdfViewModal()">Close View</button>
     </div>
 </div>
 
@@ -486,11 +504,11 @@
 
     <div class="offer-banner-box" id="dynamicOfferBanner" style="display:none;">
         🎁 <span id="offerBannerText"></span> 
-        <button class="btn btn-success" style="width: auto; padding: 6px 14px; margin-left: 10px; display:inline-block;" onclick="claimYouTubeSubscribeReward()">Subscribe YouTube & Watch Full Video ✅</button>
+        <button class="btn btn-success" style="width: auto; padding: 6px 14px; margin-left: 10px; display:inline-block;" onclick="claimYouTubeSubscribeReward()">Subscribe YouTube & Unlock Now ✅</button>
     </div>
 
     <div class="alert-banner" id="statusAlert">
-        🔒 Kripya content access karne ke liye <b>Google Login</b> karein. (Topic-wise Set #1 & Full Mock Set #1 FREE hain!)
+        🔒 Kripya content access karne ke liye <b>Google Login</b> karein. (Admin द्वारा सेट किए गए फ्री सेट्स ही बिना अनलॉक के दिखेंगे!)
     </div>
 
     <div class="live-exam-badge" id="userActiveExamBanner">
@@ -507,7 +525,7 @@
             <h3>📚 Official Syllabus & Subjects</h3>
             <ul id="syllabusList" style="margin: 15px 0 25px 20px; line-height: 1.8;"></ul>
 
-            <h3>📄 Study Materials & Topic-Wise PDFs</h3>
+            <h3>📄 Study Materials & Exam Study PDFs (View with Shart)</h3>
             <div id="pdfSection" style="margin: 15px 0 25px 0;"></div>
 
             <h3>💳 Subscription Plans & Secure Payments</h3>
@@ -522,7 +540,7 @@
                 <div class="test-mode-selector">
                     <div class="mode-card" onclick="startTestMode('topic')">
                         <h3>📂 Part 1: Topic-Wise Practice (10 Questions)</h3>
-                        <p>Subject-wise sets (Up to 30 Sets). <b>Set #1 is FREE</b>, Sets 2-30 are Paid.</p>
+                        <p>Subject-wise sets (Up to 30 Sets). Free & Paid configurable by Admin.</p>
                         <button class="btn btn-success" style="margin-top: 15px;">Start Topic-Wise Test</button>
                     </div>
                     <div class="mode-card" onclick="startTestMode('full')">
@@ -575,13 +593,13 @@
             </div>
             <div class="form-group">
                 <label>Offer Announcement Text</label>
-                <input type="text" id="adminOfferTextInput" placeholder="e.g. YouTube channel subscribe karne par Full Mock Test #2 Free milega!">
+                <input type="text" id="adminOfferTextInput" placeholder="e.g. YouTube channel subscribe karne par Mock Test 2 aur PDF free unlock ho jayenge!">
             </div>
             <div class="form-group">
-                <label>Reward Type</label>
+                <label>Reward Type / Target for Unlock</label>
                 <select id="adminOfferRewardType">
-                    <option value="mock">Free Full Mock Test Access</option>
-                    <option value="pdf">Free PDF Study Material Access</option>
+                    <option value="mock">Free Full Mock Test / Topic Test Unlock via YouTube</option>
+                    <option value="pdf">Free PDF Study Material Access via YouTube</option>
                 </select>
             </div>
             <button class="btn btn-success" style="width: auto; padding: 10px 25px;" onclick="saveYouTubeOfferSettings()">Save & Publish Offer</button>
@@ -633,7 +651,8 @@
 
         <div class="grid">
             <div class="card" style="grid-column: 1 / -1; background: #eff6ff; border-color: #bfdbfe;">
-                <h2 style="color: #1e40af; border-color: #1e40af;">⚙️ Full Mock Test Free / Paid Control (Set 1 to 30)</h2>
+                <h2 style="color: #1e40af; border-color: #1e40af;">⚙️ Mock Test 1, 2, 3... Free / Paid & YouTube Unlock Control</h2>
+                <p style="font-size: 0.85rem; color: #475569;">Admin decide karega ki kaunsa Mock Test user ko bina payment ke free dikhega ya YouTube subscription / purchase shart par unlock hoga.</p>
                 <div id="adminFullMockStatusList" style="display: flex; gap: 10px; flex-wrap: wrap; max-height: 200px; overflow-y: auto;"></div>
             </div>
 
@@ -698,18 +717,23 @@
                 <div style="margin-top: 15px; max-height: 180px; overflow-y: auto;" id="adminPlanListContainer"></div>
             </div>
 
+            <!-- 3. UPLOAD PDFs WITH Q&A & SHART OPTIONS -->
             <div class="card">
-                <h2>3. Upload PDFs (Topic-Wise with View, Edit & Delete)</h2>
-                <div class="form-group">
-                    <label>Select Subject Topic</label>
-                    <select id="pdfTargetTopic"></select>
-                </div>
+                <h2>3. Upload PDFs with Q&A & Shart Option (All Exams)</h2>
                 <div class="form-group">
                     <label>PDF Title & Price (₹)</label>
-                    <input type="text" id="adminPdfName" placeholder="Topic Study Notes PDF">
-                    <input type="number" id="adminPdfPrice" placeholder="Price in ₹" style="margin-top: 8px;">
+                    <input type="text" id="adminPdfName" placeholder="e.g. RRB NTPC Complete Study Notes PDF">
+                    <input type="number" id="adminPdfPrice" placeholder="Price in ₹ (e.g. 29)" style="margin-top: 8px;">
                 </div>
-                <button class="btn btn-success" onclick="adminAddPdf()">Upload PDF</button>
+                <div class="form-group">
+                    <label>PDF Q&A Content (Questions & Answers for View Mode)</label>
+                    <textarea id="adminPdfQnAInput" rows="3" placeholder="Q1: ... Ans: ... \nQ2: ... Ans: ..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Attach PDF File (Optional)</label>
+                    <input type="file" id="adminPdfFile" accept="application/pdf" style="padding: 8px; background: #f8fafc; border: 1px dashed var(--border-color); border-radius: 6px;">
+                </div>
+                <button class="btn btn-success" onclick="adminAddPdf()">Upload & Save PDF with Shart Gate 📄</button>
                 <div style="margin-top: 15px; max-height: 180px; overflow-y: auto;" id="adminPdfListContainer"></div>
             </div>
 
@@ -787,7 +811,7 @@
     let userSubscriptions = {}; 
     let selectedExamKey = "";
     let currentPendingPayment = null;
-    let editingQuestionRef = null;
+    let activePdfViewingIndex = null;
 
     if(!localStorage.getItem('targetrank_admin_pass')) {
         localStorage.setItem('targetrank_admin_pass', 'admin123');
@@ -809,16 +833,15 @@
 
     let youtubeOffer = JSON.parse(localStorage.getItem('targetrank_yt_offer')) || {
         active: "yes",
-        text: "Hamara YouTube channel subscribe karne aur full video dekhne par Full Mock Test #2 bilkul FREE unlock ho jayega!",
+        text: "Hamara YouTube channel subscribe karne aur full video dekhne par Mock Test 2 aur PDF bilkul FREE unlock ho jayenge!",
         reward: "mock"
     };
 
     let helpStepsList = JSON.parse(localStorage.getItem('targetrank_help_steps')) || [
-        "Step 1: Top right corner par 'Google Login' button par click karke apna Gmail ID enter kareین.",
+        "Step 1: Top right corner par 'Google Login' button par click karke apna Gmail ID enter karein.",
         "Step 2: Dashboard par apne pasand ka Exam select karein aur syllabus ya free PDFs dekhein.",
-        "Step 3: Test dene ke liye 'Live Mock Test' tab par click karein. Topic-wise Set #1 aur Full Mock Set #1 bilkul FREE hain.",
-        "Step 4: Exam dete samay aap kisi bhi samay upar diye language selector se **Hindi** ya **English** switch kar sakte hain.",
-        "Step 5: YouTube offer ke madhyam se channel subscribe karke aap extra free tests unlock kar sakte hain."
+        "Step 3: Test dene ke liye 'Live Mock Test' tab par click karein. Admin द्वारा सेट किए गए Free Set बिना अनलॉक के दिखेंगे, बाकी के लिए Unlock/Payment shart poori karni hogi.",
+        "Step 4: PDF View karte samay Q&A dekhne ke liye YouTube subscription ya payment ki shart poori karni hogi."
     ];
 
     let defaultExamsList = [
@@ -937,17 +960,28 @@
         window.open(siteBranding.youtubeLink || "https://www.youtube.com", "_blank");
         
         setTimeout(() => {
-            if(youtubeOffer.reward === "mock") {
-                if(!freeFullMocks[selectedExamKey]) freeFullMocks[selectedExamKey] = [1];
-                if(!freeFullMocks[selectedExamKey].includes(2)) freeFullMocks[selectedExamKey].push(2);
-                saveDB();
-                alert("🎉 Badhai ho! YouTube channel subscribe aur full video dekhne ke liye Full Mock Test #2 bilkul FREE unlock kar diya gaya hai!");
-            } else {
-                userSubscriptions.yt_reward_pdf = true;
-                alert("🎉 Badhai ho! YouTube subscribe karne ke liye sabhi PDFs free download ke liye unlock ho gayi hain!");
-            }
+            userSubscriptions.yt_reward_pdf = true;
+            if(!freeFullMocks[selectedExamKey]) freeFullMocks[selectedExamKey] = [1];
+            if(!freeFullMocks[selectedExamKey].includes(2)) freeFullMocks[selectedExamKey].push(2);
+            saveDB();
+            alert("🎉 Badhai ho! YouTube channel subscribe aur full video dekhne par sabhi PDFs ke Q&A aur Mock Test #2 unlock kar diye gaye hain!");
             renderAdminFullMockToggles();
+            renderPdfs();
+            if(activePdfViewingIndex !== null) {
+                openPdfUser(activePdfViewingIndex);
+            }
         }, 3000);
+    }
+
+    function claimYouTubeSubscribeRewardFromModal() {
+        claimYouTubeSubscribeReward();
+    }
+
+    function payForPdfFromModal() {
+        if(activePdfViewingIndex === null) return;
+        let pdf = examDatabase[selectedExamKey].pdfs[activePdfViewingIndex];
+        closePdfViewModal();
+        initiatePayment(pdf.name, pdf.price, 'pdf');
     }
 
     function openHelpModal() {
@@ -1016,33 +1050,17 @@
         alert("✅ Branding aur Admin emoji successfully update ho gaye hain!");
     }
 
-    let countdownInterval = null;
-    let testSubmitted = false;
-    let activeTestData = null;
-    let currentTestTimerSeconds = 0;
-    let currentTestLanguage = 'hi'; // Default language
-
     let defaultExamDatabase = {
         "Railway - RRB NTPC CBT 1": {
             pdfs: [
-                { id: 1, topic: "General Awareness", name: "RRB NTPC Complete Static GK Notes PDF", price: 49 }
+                { id: 1, exam: "Railway - RRB NTPC CBT 1", name: "RRB NTPC Complete Static GK Notes PDF", price: 49, qna: "Q1: First Railway in India? Ans: 1853\nQ2: HQ of Railway Board? Ans: New Delhi", fileData: "" }
             ],
             plans: [
                 { id: 1, category: "topic", days: 7, price: 29, dailyLimit: 10 },
                 { id: 2, category: "combo", days: 30, price: 149, dailyLimit: 10 }
             ],
-            topicTests: {
-                "General Awareness": {
-                    1: [
-                        { id: 1, en: { q: "Who was the first Viceroy of India?", opts: ["Lord Canning", "Lord Dalhousie", "Lord Curzon", "Lord Mountbatten"] }, hi: { q: "भारत का प्रथम वायसराय कौन था?", opts: ["लॉर्ड कैनिंग", "लॉर्ड डलहौजी", "लॉर्ड कर्जन", "लॉर्ड माउंटबेटन"] }, correct: 0 }
-                    ]
-                }
-            },
-            fullTests: {
-                1: [
-                    { id: 1, en: { q: "What is the capital of India?", opts: ["Mumbai", "New Delhi", "Kolkata", "Chennai"] }, hi: { q: "भारत की राजधानी क्या है?", opts: ["मुंबई", "नई दिल्ली", "कोलकाता", "चेन्नई"] }, correct: 1 }
-                ]
-            }
+            topicTests: {},
+            fullTests: {}
         }
     };
 
@@ -1065,7 +1083,7 @@
 
         let numOpts = '';
         for(let i=1; i<=30; i++) {
-            numOpts += `<option value="${i}">Test Set #${i} ${i===1 ? '(Set #1: FREE)' : '(Set #'+i+': PAID)'}</option>`;
+            numOpts += `<option value="${i}">Test Set #${i} ${i===1 ? '(Set #1: FREE)' : '(Set #'+i+': PAID/LOCKED)'}</option>`;
         }
         document.getElementById('adminTestNum').innerHTML = numOpts;
 
@@ -1085,7 +1103,7 @@
             let isFree = freeFullMocks[selectedExamKey].includes(i);
             html += `
                 <button class="btn ${isFree ? 'btn-success' : 'btn-danger'}" style="width: auto; padding: 6px 12px; font-size: 0.85rem;" onclick="toggleFullMockFree(${i})">
-                    Mock #${i} : ${isFree ? 'FREE ✅' : 'PAID 🔒'}
+                    Mock #${i} : ${isFree ? 'FREE (Visible) ✅' : 'LOCKED/PAID 🔒'}
                 </button>
             `;
         }
@@ -1097,10 +1115,10 @@
         let idx = freeFullMocks[selectedExamKey].indexOf(setNum);
         if(idx > -1) {
             freeFullMocks[selectedExamKey].splice(idx, 1);
-            alert(`🔒 Full Mock Test #${setNum} ab PAID ho gaya hai.`);
+            alert(`🔒 Full Mock Test #${setNum} ab LOCKED/PAID ho gaya hai.`);
         } else {
             freeFullMocks[selectedExamKey].push(setNum);
-            alert(`✅ Full Mock Test #${setNum} ab FREE ho gaya hai!`);
+            alert(`✅ Full Mock Test #${setNum} ab FREE (Direct Visible) ho gaya hai!`);
         }
         saveDB();
         renderAdminFullMockToggles();
@@ -1205,7 +1223,7 @@
 
         if(!examDatabase[fullKey]) {
             examDatabase[fullKey] = {
-                pdfs: [{ id: Date.now(), topic: topics[0], name: `${post} Master Guide PDF`, price: 59 }],
+                pdfs: [{ id: Date.now(), exam: fullKey, name: `${post} Master Guide PDF`, price: 59, qna: "Q1: Sample Question? Ans: Sample Answer", fileData: "" }],
                 plans: [
                     { id: 1, category: "topic", days: 7, price: 29, dailyLimit: 10 },
                     { id: 2, category: "full", days: 30, price: 99, dailyLimit: 5 }
@@ -1235,55 +1253,125 @@
         let topics = examSyllabusMap[category] || ["General Awareness", "Mathematics", "Reasoning"];
         let optionsHtml = topics.map(t => `<option value="${t}">${t}</option>`).join('');
         
-        const pdfTopicEl = document.getElementById('pdfTargetTopic');
         const qTopicEl = document.getElementById('adminQTopic');
-        
-        if(pdfTopicEl) pdfTopicEl.innerHTML = optionsHtml;
         if(qTopicEl) qTopicEl.innerHTML = optionsHtml;
+    }
+
+    // UPLOAD PDF WITH Q&A & SHART OPTION
+    function adminAddPdf() {
+        let name = document.getElementById('adminPdfName').value.trim();
+        let price = parseFloat(document.getElementById('adminPdfPrice').value) || 0;
+        let qna = document.getElementById('adminPdfQnAInput').value.trim();
+        let fileInput = document.getElementById('adminPdfFile');
+
+        if(!name) return alert("Kripya PDF ka title enter karein!");
+
+        let reader = new FileReader();
+        let file = fileInput.files[0];
+
+        if(file) {
+            reader.readAsDataURL(file);
+            reader.onload = function () {
+                savePdfRecord(name, price, qna, reader.result);
+            };
+        } else {
+            savePdfRecord(name, price, qna, "");
+        }
+    }
+
+    function savePdfRecord(name, price, qna, fileData) {
+        if(!examDatabase[selectedExamKey]) {
+            examDatabase[selectedExamKey] = { pdfs: [], plans: [], topicTests: {}, fullTests: {} };
+        }
+        examDatabase[selectedExamKey].pdfs.push({
+            id: Date.now(),
+            exam: selectedExamKey,
+            name: name,
+            price: price,
+            qna: qna || "Q1: Sample Question? Ans: Sample Answer",
+            fileData: fileData
+        });
+        saveDB();
+        renderPdfs();
+        renderAdminLists();
+        alert(`✅ PDF "${name}" successfully ${selectedExamKey} ke liye upload ho gayi hai!`);
+        document.getElementById('adminPdfName').value = "";
+        document.getElementById('adminPdfPrice').value = "";
+        document.getElementById('adminPdfQnAInput').value = "";
+        document.getElementById('adminPdfFile').value = "";
     }
 
     function renderPdfs() {
         let pdfs = examDatabase[selectedExamKey]?.pdfs || [];
         let pdfHtml = '';
-        pdfs.forEach(p => {
-            let isFree = userSubscriptions.yt_reward_pdf;
+        pdfs.forEach((p, idx) => {
             pdfHtml += `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 10px; flex-wrap:wrap; gap:10px;">
                     <div>
-                        <b>${p.name}</b> <br>
-                        <span style="font-size:0.8rem; color:#64748b;">Topic: ${p.topic || 'General'}</span>
+                        <b>📄 ${p.name}</b> <br>
+                        <span style="font-size:0.8rem; color:#64748b;">Exam: ${p.exam || selectedExamKey} | Price: ₹${p.price}</span>
                     </div>
-                    <button class="btn btn-success" style="width: auto; padding: 8px 16px;" onclick="initiatePayment('${p.name}', ${isFree ? 0 : p.price}, 'pdf')">${isFree ? 'Download Free ✅' : 'Buy & Download (₹' + p.price + ')'}</button>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn" style="background:#0284c7; width: auto; padding: 6px 12px; font-size:0.85rem;" onclick="openPdfUser(${idx})">View Q&A / PDF 👁️</button>
+                    </div>
                 </div>
             `;
         });
-        document.getElementById('pdfSection').innerHTML = pdfHtml;
+        document.getElementById('pdfSection').innerHTML = pdfHtml || '<p style="color:#64748b;">No PDFs uploaded for this exam yet.</p>';
     }
 
-    // Admin PDF View Modal
-    function viewAdminPdf(index) {
+    // PDF VIEW WITH SHART (QUESTION-ANSWER GATE)
+    function openPdfUser(index) {
+        activePdfViewingIndex = index;
         let pdf = examDatabase[selectedExamKey].pdfs[index];
         document.getElementById('pdfViewTitleDisplay').innerText = pdf.name;
-        document.getElementById('pdfViewTopicSpan').innerText = pdf.topic;
-        document.getElementById('pdfViewPriceSpan').innerText = pdf.price;
+        document.getElementById('pdfModalPriceSpan').innerText = pdf.price;
+
+        let isUnlocked = userSubscriptions.yt_reward_pdf || userSubscriptions.combo || pdf.price === 0;
+
+        let lockedBox = document.getElementById('pdfLockedShartBox');
+        let unlockedArea = document.getElementById('pdfUnlockedContentArea');
+
+        if(isUnlocked) {
+            lockedBox.style.display = "none";
+            unlockedArea.style.display = "block";
+            let qnaFormatted = (pdf.qna || "").replace(/\n/g, '<br>');
+            document.getElementById('pdfContentQuestionsList').innerHTML = `
+                <p><b>Question & Answers (Q&A):</b></p>
+                <div style="background:#fff; padding:12px; border-radius:6px; border:1px solid #cbd5e1; margin-bottom:10px;">${qnaFormatted}</div>
+                ${pdf.fileData ? `<button class="btn btn-success" onclick="downloadPdfFile(${index})">Download Original PDF File 📥</button>` : ''}
+            `;
+        } else {
+            lockedBox.style.display = "block";
+            unlockedArea.style.display = "none";
+        }
+
         document.getElementById('pdfViewModal').style.display = 'flex';
+    }
+
+    function downloadPdfFile(index) {
+        let pdf = examDatabase[selectedExamKey].pdfs[index];
+        if(pdf.fileData) {
+            let a = document.createElement('a');
+            a.href = pdf.fileData;
+            a.download = `${pdf.name}.pdf`;
+            a.click();
+        } else {
+            alert(`📥 Downloading PDF: ${pdf.name}`);
+        }
     }
 
     function closePdfViewModal() {
         document.getElementById('pdfViewModal').style.display = 'none';
     }
 
-    function editAdminPdf(index) {
-        let pdf = examDatabase[selectedExamKey].pdfs[index];
-        let newName = prompt("Edit PDF Title:", pdf.name);
-        let newPrice = prompt("Edit PDF Price (₹):", pdf.price);
-        if(newName !== null && newPrice !== null) {
-            pdf.name = newName.trim();
-            pdf.price = parseFloat(newPrice) || 0;
+    function deleteAdminPdf(index) {
+        if(confirm("Kya aap is PDF ko delete karna chahte hain?")) {
+            examDatabase[selectedExamKey].pdfs.splice(index, 1);
             saveDB();
             renderPdfs();
             renderAdminLists();
-            alert("✅ PDF successfully updated!");
+            alert("✅ PDF successfully delete ho gayi hai.");
         }
     }
 
@@ -1292,14 +1380,14 @@
         let plansHtml = '';
 
         plans.forEach(pl => {
-            let catName = pl.category === 'topic' ? 'Topic-Wise Practice' : (pl.category === 'full' ? 'Full CBT Mock' : '⭐ Mega Combo (Mock + PDFs Free)');
+            let catName = pl.category === 'topic' ? 'Topic-Wise Practice Plan' : (pl.category === 'full' ? 'Full CBT Mock Plan' : '⭐ Mega Combo (Mock + PDFs Free)');
             plansHtml += `
                 <div class="plan-card">
                     <span style="font-size:0.75rem; background:#e0e7ff; color:#3730a3; padding:3px 8px; border-radius:4px; font-weight:bold;">${catName}</span>
                     <h4 style="margin-top:8px;">📅 ${pl.days} Din Ka Plan</h4>
                     <div class="plan-price">₹${pl.price}</div>
                     <div class="plan-detail">📝 Daily Limit: ${pl.dailyLimit} Tests</div>
-                    <button class="btn btn-success" onclick="initiatePayment('${pl.days} Din Ka Plan', ${pl.price}, '${pl.category}', ${pl.days}, ${pl.dailyLimit})">Buy Plan</button>
+                    <button class="btn btn-success" onclick="initiatePayment('${pl.days} Din Ka Plan', ${pl.price}, '${pl.category}', ${pl.days}, ${pl.dailyLimit})">Unlock & Buy Plan</button>
                 </div>
             `;
         });
@@ -1312,7 +1400,7 @@
             return;
         }
         if(price === 0) {
-            alert(`📥 Downloading "${title}" for FREE!`);
+            alert(`📥 Unlocked "${title}" for FREE!`);
             return;
         }
 
@@ -1336,10 +1424,14 @@
         closePaymentModal();
 
         if(p.type === 'pdf') {
-            alert(`✅ Payment Verified! "${p.title}" download ke liye unlocked hai.`);
+            userSubscriptions.yt_reward_pdf = true;
+            alert(`✅ Payment Verified! "${p.title}" ke Q&A unlocked hain.`);
+            renderPdfs();
+            if(activePdfViewingIndex !== null) openPdfUser(activePdfViewingIndex);
         } else {
             activateSubscription(p.type, p.days, p.price, p.dailyLimit);
-            alert(`✅ Payment Successful! ${p.title} activate ho gaya hai.`);
+            alert(`✅ Payment Successful! ${p.title} activate ho gaya hai ab sabhi tests unlocked hain.`);
+            resetTestSelectionScreen();
         }
     }
 
@@ -1348,25 +1440,7 @@
             window.open(paymentConfig.razorpayLink, "_blank");
         } else {
             if(currentPendingPayment) {
-                var options = {
-                    "key": "rzp_test_KeyHere",
-                    "amount": currentPendingPayment.price * 100,
-                    "currency": "INR",
-                    "name": siteBranding.name,
-                    "description": currentPendingPayment.title,
-                    "handler": function (response){
-                        confirmOfflinePayment();
-                    },
-                    "prefill": { "email": currentUser.email },
-                    "theme": { "color": "#4f46e5" }
-                };
-                try {
-                    var rzp = new Razorpay(options);
-                    rzp.open();
-                } catch(e) {
-                    alert("Razorpay popup opened in test mode.");
-                    confirmOfflinePayment();
-                }
+                confirmOfflinePayment();
             }
         }
     }
@@ -1392,7 +1466,7 @@
         const banner = document.getElementById('statusAlert');
         banner.style.background = "#ecfdf5";
         banner.style.color = "#065f46";
-        banner.innerHTML = `✅ Logged in as <b>${currentUser.email}</b><br>Secure payment & mock testing active!`;
+        banner.innerHTML = `✅ Logged in as <b>${currentUser.email}</b><br>Secure unlock & mock testing active!`;
     }
 
     function openAdminModal() {
@@ -1439,472 +1513,31 @@
         document.getElementById('newExamTitleInput').value = "";
     }
 
-    function deleteExam(examKey) {
-        if(allExamsList.length <= 1) return alert("Kam se kam ek exam hona zaroori hai!");
-        if(confirm(`Kya aap "${examKey}" ko delete karna chahte hain?`)) {
-            allExamsList = allExamsList.filter(e => e !== examKey);
-            delete examDatabase[examKey];
-            saveDB();
-            selectedExamKey = allExamsList[0];
-            refreshApp();
-            alert("✅ Exam successfully delete ho gaya hai.");
-        }
-    }
-
     function renderAdminExamList() {
         let html = '';
         allExamsList.forEach(e => {
             html += `
                 <div class="list-item-admin">
                     <span>🎯 <b>${e}</b></span>
-                    <button class="btn btn-danger" style="width:auto; padding:4px 10px; font-size:0.8rem;" onclick="deleteExam('${e}')">Delete Exam</button>
+                    <button class="btn btn-danger" style="width: auto; padding: 4px 10px; font-size: 0.8rem;" onclick="deleteExam('${e}')">Delete Exam</button>
                 </div>
             `;
         });
         document.getElementById('adminExamListContainer').innerHTML = html;
     }
 
-    function activateSubscription(category, days, price, dailyLimit) {
-        userSubscriptions[category] = {
-            days: days,
-            price: price,
-            dailyLimit: dailyLimit,
-            expiryTime: Date.now() + (days * 24 * 60 * 60 * 1000),
-            lastDate: new Date().toDateString(),
-            usedToday: 0
-        };
-        if(category === 'combo') {
-            userSubscriptions.yt_reward_pdf = true;
-        }
-        localStorage.setItem('subs_' + currentUser.email, JSON.stringify(userSubscriptions));
-        updateStatusBanner();
-        renderPdfs();
-    }
-
-    function resetTestSelectionScreen() {
-        clearInterval(countdownInterval);
-        countdownInterval = null;
-        testSubmitted = false;
-        document.getElementById('testSelectionScreen').style.display = 'block';
-        document.getElementById('activeTestArea').style.display = 'none';
-        document.getElementById('activeTestArea').innerHTML = '';
-    }
-
-    function startTestMode(mode) {
-        if(mode === 'topic') {
-            let category = selectedExamKey.split(' - ')[0];
-            let topics = examSyllabusMap[category] || ["General Awareness", "Mathematics", "Reasoning"];
-            let topicListHtml = topics.map(t => `<option value="${t}">${t}</option>`).join('');
-            let setListHtml = '';
-            for(let i=1; i<=30; i++) {
-                setListHtml += `<option value="${i}">Set #${i} ${i===1 ? '(FREE)' : '(PAID)'}</option>`;
-            }
-
-            document.getElementById('testSelectionScreen').style.display = 'none';
-            let area = document.getElementById('activeTestArea');
-            area.style.display = 'block';
-            area.innerHTML = `
-                <h2 style="color:var(--primary);">📂 Choose Topic-Wise Practice Set</h2>
-                <div class="form-group">
-                    <label>Select Subject</label>
-                    <select id="selectedTopicRun">${topicListHtml}</select>
-                </div>
-                <div class="form-group">
-                    <label>Select Test Set (1 to 30)</label>
-                    <select id="selectedSetRun">${setListHtml}</select>
-                </div>
-                <button class="btn btn-success" onclick="launchTestExecution('topic')">Start Test Now</button>
-                <button class="btn" style="background:#64748b; margin-top:10px;" onclick="resetTestSelectionScreen()">Back</button>
-            `;
-        } else {
-            let freeSets = freeFullMocks[selectedExamKey] || [1];
-            let setListHtml = '';
-            for(let i=1; i<=30; i++) {
-                let isFreeSet = freeSets.includes(i);
-                setListHtml += `<option value="${i}">Full CBT Mock Test #${i} ${isFreeSet ? '(FREE ✅)' : '(PAID 🔒)'}</option>`;
-            }
-            document.getElementById('testSelectionScreen').style.display = 'none';
-            let area = document.getElementById('activeTestArea');
-            area.style.display = 'block';
-            area.innerHTML = `
-                <h2 style="color:var(--primary);">📝 Choose Full CBT Mock Test</h2>
-                <div class="form-group">
-                    <label>Select Full Mock Number (1 to 30)</label>
-                    <select id="selectedFullSetRun">${setListHtml}</select>
-                </div>
-                <button class="btn btn-success" onclick="launchTestExecution('full')">Start Full Mock (90 Min)</button>
-                <button class="btn" style="background:#64748b; margin-top:10px;" onclick="resetTestSelectionScreen()">Back</button>
-            `;
-        }
-    }
-
-    function launchTestExecution(type) {
-        let setNum = 1;
-        let topicKey = "";
-        if(type === 'topic') {
-            topicKey = document.getElementById('selectedTopicRun').value;
-            setNum = parseInt(document.getElementById('selectedSetRun').value);
-            
-            let tData = examDatabase[selectedExamKey]?.topicTests?.[topicKey]?.[setNum];
-            if(!tData || tData.length === 0) {
-                alert(`⚠️ Is Set (#${setNum}) ke liye abhi koi questions add nahi kiye gaye hain.`);
-                return;
-            }
-            activeTestData = tData;
-            currentTestTimerSeconds = 600;
-        } else {
-            setNum = parseInt(document.getElementById('selectedFullSetRun').value);
-            let fData = examDatabase[selectedExamKey]?.fullTests?.[setNum];
-            if(!fData || fData.length === 0) {
-                alert(`⚠️ Full Mock #${setNum} ke liye questions available nahi hain.`);
-                return;
-            }
-            activeTestData = fData;
-            currentTestTimerSeconds = 5400; // 90 mins
-        }
-
-        currentTestLanguage = 'hi'; // Default start language
-        renderActiveTestInterface(type, setNum);
-    }
-
-    function toggleTestLanguage(lang) {
-        currentTestLanguage = lang;
-        // Refresh question texts and options dynamically
-        activeTestData.forEach((q, idx) => {
-            let qHeader = document.getElementById(`q_text_header_${idx}`);
-            let optsContainer = document.getElementById(`q_opts_container_${idx}`);
-            if(qHeader && optsContainer) {
-                let qText = (currentTestLanguage === 'hi' && q.hi && q.hi.q) ? q.hi.q : q.en.q;
-                let opts = (currentTestLanguage === 'hi' && q.hi && q.hi.opts) ? q.hi.opts : q.en.opts;
-                qHeader.innerText = `Q${idx+1}. ${qText}`;
-                
-                let optsHtml = '';
-                opts.forEach((opt, oIdx) => {
-                    let isChecked = document.querySelector(`input[name="q_${idx}"][value="${oIdx}"]`)?.checked ? 'checked' : '';
-                    optsHtml += `
-                        <label>
-                            <input type="radio" name="q_${idx}" value="${oIdx}" ${isChecked}> ${String.fromCharCode(65 + oIdx)}) ${opt}
-                        </label>
-                    `;
-                });
-                optsContainer.innerHTML = optsHtml;
-            }
-        });
-    }
-
-    function renderActiveTestInterface(type, setNum) {
-        let area = document.getElementById('activeTestArea');
-        let html = `
-            <div class="test-header">
-                <h3>📖 Live Test: ${selectedExamKey} (${type === 'topic' ? 'Topic Practice' : 'Full Mock #' + setNum})</h3>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <div style="font-size: 0.9rem; font-weight: bold;">Language: 
-                        <select id="testLangSelector" onchange="toggleTestLanguage(this.value)" style="padding: 4px 8px; font-weight: bold;">
-                            <option value="hi" ${currentTestLanguage==='hi'?'selected':''}>हिंदी (Hindi)</option>
-                            <option value="en" ${currentTestLanguage==='en'?'selected':''}>English</option>
-                        </select>
-                    </div>
-                    <div class="timer-box" id="timerDisplay">90:00</div>
-                </div>
-            </div>
-            <form id="liveTestForm">
-        `;
-
-        activeTestData.forEach((q, idx) => {
-            let qText = (currentTestLanguage === 'hi' && q.hi && q.hi.q) ? q.hi.q : q.en.q;
-            let opts = (currentTestLanguage === 'hi' && q.hi && q.hi.opts) ? q.hi.opts : q.en.opts;
-            html += `
-                <div class="question-box" data-qid="${q.id}" data-idx="${idx}">
-                    <h3 id="q_text_header_${idx}">Q${idx+1}. ${qText}</h3>
-                    <div class="options" id="q_opts_container_${idx}">
-            `;
-            opts.forEach((opt, oIdx) => {
-                html += `
-                    <label>
-                        <input type="radio" name="q_${idx}" value="${oIdx}"> ${String.fromCharCode(65 + oIdx)}) ${opt}
-                    </label>
-                `;
-            });
-            html += `</div></div>`;
-        });
-
-        html += `
-                <button type="button" class="btn btn-success" onclick="submitLiveTest()">Submit Test</button>
-            </form>
-        `;
-        area.innerHTML = html;
-
-        startTimerCountdown();
-    }
-
-    function startTimerCountdown() {
-        let timerEl = document.getElementById('timerDisplay');
-        countdownInterval = setInterval(() => {
-            if(currentTestTimerSeconds <= 0) {
-                clearInterval(countdownInterval);
-                submitLiveTest();
-                return;
-            }
-            currentTestTimerSeconds--;
-            let m = Math.floor(currentTestTimerSeconds / 60);
-            let s = currentTestTimerSeconds % 60;
-            timerEl.innerText = `${m < 10 ? '0':''}${m}:${s < 10 ? '0':''}${s}`;
-        }, 1000);
-    }
-
-    function submitLiveTest() {
-        if(testSubmitted) return;
-        testSubmitted = true;
-        clearInterval(countdownInterval);
-
-        let score = 0;
-        let total = activeTestData.length;
-        let reviewHtml = `<h2 style="color:var(--primary); text-align:center;">📊 Test Performance & Scorecard</h2>`;
-
-        activeTestData.forEach((q, idx) => {
-            let selected = document.querySelector(`input[name="q_${idx}"]:checked`);
-            let userAns = selected ? parseInt(selected.value) : -1;
-            let correctAns = q.correct;
-            let qText = q.en.q;
-            let opts = q.en.opts;
-
-            let statusClass = "skipped";
-            let statusText = "⚠️ Skipped (Not Answered)";
-            if(userAns === correctAns) {
-                score++;
-                statusClass = "correct";
-                statusText = "✅ Correct Answer";
-            } else if(userAns !== -1) {
-                statusClass = "incorrect";
-                statusText = "❌ Incorrect Answer";
-            }
-
-            reviewHtml += `
-                <div class="review-card ${statusClass}">
-                    <b>Q${idx+1}. ${qText}</b><br>
-                    <span style="font-weight:bold; font-size:0.9rem;">Status: ${statusText}</span><br>
-                    <span style="font-size:0.9rem; color:#475569;">Your Answer: ${userAns !== -1 ? opts[userAns] : 'None'} | Correct Answer: <b>${opts[correctAns]}</b></span>
-                </div>
-            `;
-        });
-
-        let percentage = ((score / total) * 100).toFixed(1);
-        let summaryHtml = `
-            <div class="score-summary">
-                🎯 Total Score: ${score} / ${total} (${percentage}%)<br>
-                ${percentage >= 50 ? '🌟 Badhai ho! Excellent performance!' : '💪 Aur mehnat karein, aap aur behtar kar sakte hain!'}
-            </div>
-        `;
-
-        document.getElementById('activeTestArea').innerHTML = summaryHtml + reviewHtml + `
-            <button class="btn" onclick="resetTestSelectionScreen()" style="margin-top:20px;">Take Another Test</button>
-        `;
-    }
-
     function adminAddPlan() {
         let category = document.getElementById('adminPlanCategory').value;
-        let days = parseInt(document.getElementById('adminPlanDays').value);
-        let price = parseFloat(document.getElementById('adminPlanPrice').value);
-        let dailyLimit = parseInt(document.getElementById('adminPlanDailyLimit').value);
-        
-        if(isNaN(days) || days < 1 || isNaN(price) || price < 1 || isNaN(dailyLimit) || dailyLimit < 1) {
-            return alert("Kripya sabhi fields sahi se bharein!");
-        }
-        
+        let days = parseInt(document.getElementById('adminPlanDays').value) || 30;
+        let price = parseInt(document.getElementById('adminPlanPrice').value) || 99;
+        let dailyLimit = parseInt(document.getElementById('adminPlanDailyLimit').value) || 5;
+
         if(!examDatabase[selectedExamKey].plans) examDatabase[selectedExamKey].plans = [];
         examDatabase[selectedExamKey].plans.push({ id: Date.now(), category, days, price, dailyLimit });
         saveDB();
         renderPlans();
         renderAdminLists();
-        alert("✅ Subscription plan successfully added!");
-        
-        document.getElementById('adminPlanDays').value = "";
-        document.getElementById('adminPlanPrice').value = "";
-        document.getElementById('adminPlanDailyLimit').value = "";
-    }
-
-    function adminAddPdf() {
-        let topic = document.getElementById('pdfTargetTopic').value;
-        let name = document.getElementById('adminPdfName').value.trim();
-        let price = parseFloat(document.getElementById('adminPdfPrice').value);
-        if(!name || isNaN(price)) return alert("Kripya valid PDF title aur price bharein!");
-
-        if(!examDatabase[selectedExamKey].pdfs) examDatabase[selectedExamKey].pdfs = [];
-        examDatabase[selectedExamKey].pdfs.push({ id: Date.now(), topic, name, price });
-        saveDB();
-        renderPdfs();
-        renderAdminLists();
-        alert("✅ PDF successfully uploaded!");
-        document.getElementById('adminPdfName').value = "";
-        document.getElementById('adminPdfPrice').value = "";
-    }
-
-    function toggleTestNumberDropdown() {
-        let type = document.getElementById('adminTestType').value;
-        document.getElementById('topicSelectGroup').style.display = (type === 'topic') ? 'block' : 'none';
-    }
-
-    function adminAddQuestion() {
-        let type = document.getElementById('adminTestType').value;
-        let topic = document.getElementById('adminQTopic').value;
-        let testNum = parseInt(document.getElementById('adminTestNum').value);
-        
-        let qEn = document.getElementById('adminQTextEn').value.trim();
-        let qHi = document.getElementById('adminQTextHi').value.trim();
-        
-        let optAEn = document.getElementById('adminOptAEn').value.trim();
-        let optAHi = document.getElementById('adminOptAHi').value.trim();
-        let optBEn = document.getElementById('adminOptBEn').value.trim();
-        let optBHi = document.getElementById('adminOptBHi').value.trim();
-        let optCEn = document.getElementById('adminOptCEn').value.trim();
-        let optCHi = document.getElementById('adminOptCHi').value.trim();
-        let optDEn = document.getElementById('adminOptDEn').value.trim();
-        let optDHi = document.getElementById('adminOptDHi').value.trim();
-        
-        let correct = parseInt(document.getElementById('adminQCorrect').value);
-
-        if(!qEn || !optAEn || !optBEn || !optCEn || !optDEn) {
-            return alert("❌ Kripya English question aur sabhi options bharein!");
-        }
-
-        let qObj = {
-            id: editingQuestionRef ? editingQuestionRef.id : Date.now(),
-            hi: { q: qHi || qEn, opts: [optAHi || optAEn, optBHi || optBEn, optCHi || optCEn, optDHi || optDEn] },
-            en: { q: qEn, opts: [optAEn, optBEn, optCEn, optDEn] },
-            correct: correct
-        };
-
-        if(type === 'topic') {
-            if(!examDatabase[selectedExamKey].topicTests) examDatabase[selectedExamKey].topicTests = {};
-            if(!examDatabase[selectedExamKey].topicTests[topic]) examDatabase[selectedExamKey].topicTests[topic] = {};
-            if(!examDatabase[selectedExamKey].topicTests[topic][testNum]) examDatabase[selectedExamKey].topicTests[topic][testNum] = [];
-            
-            if(editingQuestionRef && editingQuestionRef.type === 'topic') {
-                let idx = examDatabase[selectedExamKey].topicTests[topic][testNum].findIndex(q => q.id === editingQuestionRef.id);
-                if(idx > -1) examDatabase[selectedExamKey].topicTests[topic][testNum][idx] = qObj;
-                else examDatabase[selectedExamKey].topicTests[topic][testNum].push(qObj);
-            } else {
-                examDatabase[selectedExamKey].topicTests[topic][testNum].push(qObj);
-            }
-        } else {
-            if(!examDatabase[selectedExamKey].fullTests) examDatabase[selectedExamKey].fullTests = {};
-            if(!examDatabase[selectedExamKey].fullTests[testNum]) examDatabase[selectedExamKey].fullTests[testNum] = [];
-            
-            if(editingQuestionRef && editingQuestionRef.type === 'full') {
-                let idx = examDatabase[selectedExamKey].fullTests[testNum].findIndex(q => q.id === editingQuestionRef.id);
-                if(idx > -1) examDatabase[selectedExamKey].fullTests[testNum][idx] = qObj;
-                else examDatabase[selectedExamKey].fullTests[testNum].push(qObj);
-            } else {
-                examDatabase[selectedExamKey].fullTests[testNum].push(qObj);
-            }
-        }
-
-        editingQuestionRef = null;
-        saveDB();
-        renderAdminLists();
-        alert("✅ Question successfully saved securely!");
-        
-        document.getElementById('adminQTextEn').value = "";
-        document.getElementById('adminQTextHi').value = "";
-        document.getElementById('adminOptAEn').value = ""; document.getElementById('adminOptAHi').value = "";
-        document.getElementById('adminOptBEn').value = ""; document.getElementById('adminOptBHi').value = "";
-        document.getElementById('adminOptCEn').value = ""; document.getElementById('adminOptCHi').value = "";
-        document.getElementById('adminOptDEn').value = ""; document.getElementById('adminOptDHi').value = "";
-    }
-
-    function editQuestion(type, topic, testNum, qId) {
-        let qList = (type === 'topic') ? examDatabase[selectedExamKey].topicTests[topic][testNum] : examDatabase[selectedExamKey].fullTests[testNum];
-        let q = qList.find(item => item.id === qId);
-        if(!q) return;
-
-        editingQuestionRef = { type, topic, testNum, id: qId };
-        document.getElementById('adminTestType').value = type;
-        toggleTestNumberDropdown();
-        if(type === 'topic') document.getElementById('adminQTopic').value = topic;
-        document.getElementById('adminTestNum').value = testNum;
-
-        document.getElementById('adminQTextEn').value = q.en.q;
-        document.getElementById('adminQTextHi').value = q.hi.q;
-        document.getElementById('adminOptAEn').value = q.en.opts[0]; document.getElementById('adminOptAHi').value = q.hi.opts[0];
-        document.getElementById('adminOptBEn').value = q.en.opts[1]; document.getElementById('adminOptBHi').value = q.hi.opts[1];
-        document.getElementById('adminOptCEn').value = q.en.opts[2]; document.getElementById('adminOptCHi').value = q.hi.opts[2];
-        document.getElementById('adminOptDEn').value = q.en.opts[3]; document.getElementById('adminOptDHi').value = q.hi.opts[3];
-        document.getElementById('adminQCorrect').value = q.correct;
-
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        alert("⚠️ Question loaded into form for editing. Make changes and click 'Add / Update Question Securely'.");
-    }
-
-    function deleteQuestion(type, topic, testNum, qId) {
-        if(confirm("Kya aap is question ko delete karna chahte hain?")) {
-            if(type === 'topic') {
-                let list = examDatabase[selectedExamKey].topicTests[topic][testNum];
-                examDatabase[selectedExamKey].topicTests[topic][testNum] = list.filter(item => item.id !== qId);
-            } else {
-                let list = examDatabase[selectedExamKey].fullTests[testNum];
-                examDatabase[selectedExamKey].fullTests[testNum] = list.filter(item => item.id !== qId);
-            }
-            saveDB();
-            renderAdminLists();
-            alert("✅ Question deleted successfully!");
-        }
-    }
-
-    function renderAdminLists() {
-        let currentData = examDatabase[selectedExamKey] || {};
-        
-        let planListHtml = '';
-        (currentData.plans || []).forEach((p, i) => {
-            planListHtml += `<div class="list-item-admin"><span><b>[${p.category}]</b> ${p.days} Din | ₹${p.price}</span> <button class="btn btn-danger" style="width:auto; padding:4px 8px; font-size:0.8rem;" onclick="deletePlan(${i})">Delete</button></div>`;
-        });
-        document.getElementById('adminPlanListContainer').innerHTML = planListHtml || '<p style="color:#64748b; font-size:0.85rem;">No plans added.</p>';
-
-        let pdfListHtml = '';
-        (currentData.pdfs || []).forEach((p, i) => {
-            pdfListHtml += `
-                <div class="list-item-admin">
-                    <span>${p.name} (${p.topic}) - ₹${p.price}</span> 
-                    <div style="display:flex; gap:6px;">
-                        <button class="btn btn-success" style="width:auto; padding:4px 8px; font-size:0.8rem;" onclick="viewAdminPdf(${i})">View</button>
-                        <button class="btn btn-warning" style="width:auto; padding:4px 8px; font-size:0.8rem;" onclick="editAdminPdf(${i})">Edit</button>
-                        <button class="btn btn-danger" style="width:auto; padding:4px 8px; font-size:0.8rem;" onclick="deletePdf(${i})">Delete</button>
-                    </div>
-                </div>`;
-        });
-        document.getElementById('adminPdfListContainer').innerHTML = pdfListHtml || '<p style="color:#64748b; font-size:0.85rem;">No PDFs uploaded.</p>';
-
-        let qCountHtml = '';
-        let topicTests = currentData.topicTests || {};
-        for(let top in topicTests) {
-            for(let setNum in topicTests[top]) {
-                let qList = topicTests[top][setNum];
-                qList.forEach(q => {
-                    qCountHtml += `
-                        <div class="list-item-admin">
-                            <span style="font-size:0.85rem;">[Topic: ${top} | Set #${setNum}] ${q.en.q.substring(0, 45)}...</span>
-                            <div style="display:flex; gap:5px;">
-                                <button class="btn btn-warning" style="width:auto; padding:2px 6px; font-size:0.75rem;" onclick="editQuestion('topic', '${top}', ${setNum}, ${q.id})">Edit</button>
-                                <button class="btn btn-danger" style="width:auto; padding:2px 6px; font-size:0.75rem;" onclick="deleteQuestion('topic', '${top}', ${setNum}, ${q.id})">Delete</button>
-                            </div>
-                        </div>`;
-                });
-            }
-        }
-        let fullTests = currentData.fullTests || {};
-        for(let setNum in fullTests) {
-            let qList = fullTests[setNum];
-            qList.forEach(q => {
-                qCountHtml += `
-                    <div class="list-item-admin">
-                        <span style="font-size:0.85rem;">[Full Mock #${setNum}] ${q.en.q.substring(0, 45)}...</span>
-                        <div style="display:flex; gap:5px;">
-                            <button class="btn btn-warning" style="width:auto; padding:2px 6px; font-size:0.75rem;" onclick="editQuestion('full', '', ${setNum}, ${q.id})">Edit</button>
-                            <button class="btn btn-danger" style="width:auto; padding:2px 6px; font-size:0.75rem;" onclick="deleteQuestion('full', '', ${setNum}, ${q.id})">Delete</button>
-                        </div>
-                    </div>`;
-            });
-        }
-        document.getElementById('adminQuestionListContainer').innerHTML = qCountHtml || '<p style="color:#64748b; font-size:0.85rem;">No test questions added yet.</p>';
+        alert("✅ Subscription plan successfully add ho gaya hai!");
     }
 
     function deletePlan(idx) {
@@ -1914,13 +1547,231 @@
         renderAdminLists();
     }
 
-    function deletePdf(idx) {
-        examDatabase[selectedExamKey].pdfs.splice(idx, 1);
+    function renderAdminLists() {
+        let pdfs = examDatabase[selectedExamKey]?.pdfs || [];
+        let pHtml = '';
+        pdfs.forEach((p, i) => {
+            pHtml += `
+                <div class="list-item-admin">
+                    <span>📄 ${p.name} (₹${p.price})</span>
+                    <button class="btn btn-danger" style="width:auto; padding:4px 8px; font-size:0.75rem;" onclick="deleteAdminPdf(${i})">Delete</button>
+                </div>
+            `;
+        });
+        document.getElementById('adminPdfListContainer').innerHTML = pHtml || '<p style="color:#64748b; font-size:0.85rem;">No PDFs.</p>';
+
+        let plans = examDatabase[selectedExamKey]?.plans || [];
+        let plHtml = '';
+        plans.forEach((pl, i) => {
+            plHtml += `
+                <div class="list-item-admin">
+                    <span>📅 ${pl.days} Days | ₹${pl.price}</span>
+                    <button class="btn btn-danger" style="width:auto; padding:4px 8px; font-size:0.75rem;" onclick="deletePlan(${i})">Delete</button>
+                </div>
+            `;
+        });
+        document.getElementById('adminPlanListContainer').innerHTML = plHtml || '<p style="color:#64748b; font-size:0.85rem;">No Plans.</p>';
+    }
+
+    function toggleTestNumberDropdown() {
+        let type = document.getElementById('adminTestType').value;
+        let group = document.getElementById('topicSelectGroup');
+        group.style.display = (type === 'topic') ? 'block' : 'none';
+    }
+
+    function adminAddQuestion() {
+        let type = document.getElementById('adminTestType').value;
+        let testNum = parseInt(document.getElementById('adminTestNum').value);
+        let topic = document.getElementById('adminQTopic').value;
+
+        let qEn = document.getElementById('adminQTextEn').value.trim();
+        let qHi = document.getElementById('adminQTextHi').value.trim();
+        let aEn = document.getElementById('adminOptAEn').value.trim();
+        let aHi = document.getElementById('adminOptAHi').value.trim();
+        let bEn = document.getElementById('adminOptBEn').value.trim();
+        let bHi = document.getElementById('adminOptBHi').value.trim();
+        let cEn = document.getElementById('adminOptCEn').value.trim();
+        let cHi = document.getElementById('adminOptCHi').value.trim();
+        let dEn = document.getElementById('adminOptDEn').value.trim();
+        let dHi = document.getElementById('adminOptDHi').value.trim();
+        let correct = parseInt(document.getElementById('adminQCorrect').value) || 0;
+
+        if(!qEn || !qHi) return alert("Kripya English aur Hindi dono mein question enter karein!");
+
+        let qObj = {
+            id: Date.now(),
+            en: { q: qEn, opts: [aEn || "Option A", bEn || "Option B", cEn || "Option C", dEn || "Option D"] },
+            hi: { q: qHi, opts: [aHi || "विकल्प A", bHi || "विकल्प B", cHi || "विकल्प C", dHi || "विकल्प D"] },
+            correct: correct
+        };
+
+        if(type === 'topic') {
+            if(!examDatabase[selectedExamKey].topicTests) examDatabase[selectedExamKey].topicTests = {};
+            if(!examDatabase[selectedExamKey].topicTests[topic]) examDatabase[selectedExamKey].topicTests[topic] = {};
+            if(!examDatabase[selectedExamKey].topicTests[topic][testNum]) examDatabase[selectedExamKey].topicTests[topic][testNum] = [];
+            examDatabase[selectedExamKey].topicTests[topic][testNum].push(qObj);
+        } else {
+            if(!examDatabase[selectedExamKey].fullTests) examDatabase[selectedExamKey].fullTests = {};
+            if(!examDatabase[selectedExamKey].fullTests[testNum]) examDatabase[selectedExamKey].fullTests[testNum] = [];
+            examDatabase[selectedExamKey].fullTests[testNum].push(qObj);
+        }
+
         saveDB();
-        renderPdfs();
-        renderAdminLists();
+        alert("✅ Question successfully save ho gaya hai!");
+    }
+
+    // MOCK TEST SIMULATOR LOGIC
+    function resetTestSelectionScreen() {
+        document.getElementById('testSelectionScreen').style.display = 'block';
+        document.getElementById('activeTestArea').style.display = 'none';
+    }
+
+    function startTestMode(mode) {
+        let container = document.getElementById('activeTestArea');
+        document.getElementById('testSelectionScreen').style.display = 'none';
+        container.style.display = 'block';
+
+        let html = `<h2 style="color:var(--primary);">${mode === 'topic' ? '📂 Part 1: Topic-Wise Practice Sets' : '📝 Part 2: Full CBT Mock Tests'}</h2><div class="grid">`;
+        
+        for(let i=1; i<=10; i++) {
+            let isFreeMock = mode === 'full' && (freeFullMocks[selectedExamKey] || [1]).includes(i);
+            let isFreeTopic = mode === 'topic' && i === 1;
+            let isUnlocked = isFreeMock || isFreeTopic || userSubscriptions.combo || userSubscriptions[mode];
+
+            html += `
+                <div class="card" style="text-align:center; background:${isUnlocked ? '#f0fdf4' : '#fffbeb'}; border-color:${isUnlocked ? '#bbf7d0' : '#fde68a'};">
+                    <h3>Test Set #${i}</h3>
+                    <p>${isUnlocked ? 'Status: Unlocked ✅' : 'Status: Locked (Shart / Payment Required) 🔒'}</p>
+                    ${isUnlocked ? 
+                        `<button class="btn btn-success" onclick="launchTestSession('${mode}', ${i})">Start Test 🚀</button>` :
+                        `<button class="btn btn-warning" onclick="initiatePayment('Test Set #${i}', 49, '${mode}')">Unlock Test Set (₹49) 🔒</button>`
+                    }
+                </div>
+            `;
+        }
+        html += `</div><button class="btn" style="background:#64748b; margin-top:20px;" onclick="resetTestSelectionScreen()">← Back to Test Menu</button>`;
+        container.innerHTML = html;
+    }
+
+    let currentTestQuestions = [];
+    let currentTestIndex = 0;
+    let userAnswers = {};
+
+    function launchTestSession(mode, setNum) {
+        let category = selectedExamKey.split(' - ')[0];
+        let topics = examSyllabusMap[category] || ["General Awareness"];
+        let topic = topics[0];
+
+        if(mode === 'topic') {
+            currentTestQuestions = examDatabase[selectedExamKey]?.topicTests?.[topic]?.[setNum] || [];
+        } else {
+            currentTestQuestions = examDatabase[selectedExamKey]?.fullTests?.[setNum] || [];
+        }
+
+        if(currentTestQuestions.length === 0) {
+            currentTestQuestions = [
+                { id: 1, en: { q: `Sample Question 1 for ${selectedExamKey}`, opts: ["Option A", "Option B", "Option C", "Option D"] }, hi: { q: `नमूना प्रश्न 1 (${selectedExamKey} ke liye)`, opts: ["विकल्प A", "विकल्प B", "विकल्प C", "विकल्प D"] }, correct: 0 },
+                { id: 2, en: { q: `Sample Question 2 for ${selectedExamKey}`, opts: ["Option A", "Option B", "Option C", "Option D"] }, hi: { q: `नमूना प्रश्न 2 (${selectedExamKey} ke liye)`, opts: ["विकल्प A", "विकल्प B", "विकल्प C", "विकल्प D"] }, correct: 1 }
+            ];
+        }
+
+        currentTestIndex = 0;
+        userAnswers = {};
+        currentTestTimerSeconds = 1800;
+        testSubmitted = false;
+
+        if(countdownInterval) clearInterval(countdownInterval);
+        countdownInterval = setInterval(() => {
+            currentTestTimerSeconds--;
+            let mins = Math.floor(currentTestTimerSeconds / 60);
+            let secs = currentTestTimerSeconds % 60;
+            let timerEl = document.getElementById('testTimerDisplay');
+            if(timerEl) timerEl.innerText = `⏱️ Time Left: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            if(currentTestTimerSeconds <= 0) {
+                clearInterval(countdownInterval);
+                submitTestSession();
+            }
+        }, 1000);
+
+        renderActiveQuestionScreen();
+    }
+
+    function renderActiveQuestionScreen() {
+        let q = currentTestQuestions[currentTestIndex];
+        let qData = q[currentTestLanguage] || q['hi'];
+
+        let container = document.getElementById('activeTestArea');
+        container.innerHTML = `
+            <div class="test-header">
+                <div>
+                    <b>Question ${currentTestIndex + 1} of ${currentTestQuestions.length}</b>
+                </div>
+                <div>
+                    <select onchange="currentTestLanguage=this.value; renderActiveQuestionScreen()" style="padding:4px 8px;">
+                        <option value="hi" ${currentTestLanguage==='hi'?'selected':''}>हिंदी (Hindi)</option>
+                        <option value="en" ${currentTestLanguage==='en'?'selected':''}>English</option>
+                    </select>
+                </div>
+                <div class="timer-box" id="testTimerDisplay">⏱️ Time Left: 30:00</div>
+            </div>
+
+            <div class="question-box">
+                <h3>${qData.q}</h3>
+                <div class="options">
+                    ${qData.opts.map((opt, oIdx) => `
+                        <label>
+                            <input type="radio" name="qopt" value="${oIdx}" ${userAnswers[currentTestIndex]===oIdx?'checked':''} onclick="userAnswers[currentTestIndex]=${oIdx}">
+                            <b>${String.fromCharCode(65 + oIdx)}.</b> ${opt}
+                        </label>
+                    `).join('')}
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; gap: 10px;">
+                <button class="btn" style="background:#64748b;" ${currentTestIndex===0?'disabled':''} onclick="currentTestIndex--; renderActiveQuestionScreen()">Previous</button>
+                ${currentTestIndex < currentTestQuestions.length - 1 ? 
+                    `<button class="btn" onclick="currentTestIndex++; renderActiveQuestionScreen()">Next Question</button>` :
+                    `<button class="btn btn-success" onclick="submitTestSession()">Submit Test 🚀</button>`
+                }
+            </div>
+        `;
+    }
+
+    function submitTestSession() {
+        if(countdownInterval) clearInterval(countdownInterval);
+        testSubmitted = true;
+
+        let score = 0;
+        let reviewHtml = '';
+
+        currentTestQuestions.forEach((q, i) => {
+            let userAns = userAnswers[i];
+            let isCorrect = userAns === q.correct;
+            if(isCorrect) score++;
+
+            let qData = q['hi'] || q['en'];
+            let statusClass = userAns === undefined ? 'skipped' : (isCorrect ? 'correct' : 'incorrect');
+
+            reviewHtml += `
+                <div class="review-card ${statusClass}">
+                    <p><b>Q${i+1}: ${qData.q}</b></p>
+                    <p style="margin:4px 0; font-size:0.9rem;">Your Answer: ${userAns !== undefined ? qData.opts[userAns] : 'Not Answered ⚠️'}</p>
+                    <p style="margin:4px 0; font-size:0.9rem; color:var(--secondary);"><b>Correct Answer: ${qData.opts[q.correct]}</b></p>
+                </div>
+            `;
+        });
+
+        let container = document.getElementById('activeTestArea');
+        container.innerHTML = `
+            <h2 style="text-align:center; color:var(--primary);">📊 Test Performance Summary</h2>
+            <div class="score-summary">
+                Your Score: ${score} / ${currentTestQuestions.length} (${Math.round((score/currentTestQuestions.length)*100)}%)
+            </div>
+            <h3>Detailed Question Review:</h3>
+            ${reviewHtml}
+            <button class="btn" style="margin-top:20px;" onclick="resetTestSelectionScreen()">Back to Test Menu</button>
+        `;
     }
 </script>
-
 </body>
 </html>
