@@ -356,27 +356,6 @@
         }
         .options label:hover { background: #f8fafc; }
         
-        .review-card {
-            background: #f8fafc;
-            padding: 18px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border-left: 6px solid #cbd5e1;
-        }
-        .review-card.correct { border-left-color: var(--secondary); background: #ecfdf5; }
-        .review-card.incorrect { border-left-color: #ef4444; background: #fef2f2; }
-        .review-card.skipped { border-left-color: #f59e0b; background: #fffbeb; }
-        .score-summary {
-            text-align: center;
-            background: #e0e7ff;
-            color: #3730a3;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            line-height: 1.6;
-        }
         .alert-banner {
             background: #fef3c7;
             color: #92400e;
@@ -408,14 +387,6 @@
             margin-bottom: 15px;
             border-left: 5px solid var(--primary);
         }
-        .unlock-card {
-            background: #fffbeb;
-            border: 2px dashed #f59e0b;
-            padding: 30px;
-            text-align: center;
-            border-radius: 12px;
-            margin: 20px 0;
-        }
     </style>
 </head>
 <body>
@@ -438,19 +409,29 @@
 <!-- PAYMENT MODAL POPUP -->
 <div class="modal-overlay" id="paymentModal">
     <div class="modal-card">
-        <h2 style="color:var(--primary); margin-top:0;">Secure UPI & QR Payment</h2>
+        <h2 style="color:var(--primary); margin-top:0;">Secure UPI & Razorpay Payment</h2>
         <p id="paymentItemTitle" style="font-weight: bold; color: #475569; margin-bottom: 5px;"></p>
         <div style="font-size: 1.5rem; color: var(--secondary); font-weight: bold; margin-bottom: 10px;" id="paymentItemPrice"></div>
         
         <img src="" id="modalQrImage" class="qr-img" alt="UPI QR Code">
         <p style="font-size: 0.85rem; color: #64748b; margin: 5px 0;">UPI ID: <b id="modalUpiIdText"></b></p>
-        <p style="font-size: 0.8rem; color: #94a3b8;">Scan with PhonePe, Google Pay, Paytm, or any UPI app. No hidden charges!</p>
+        <p style="font-size: 0.8rem; color: #94a3b8;">Scan & Pay via any UPI app or click Razorpay Link below.</p>
 
         <div style="margin-top: 20px; display: flex; gap: 10px; flex-direction: column;">
-            <button class="btn btn-success" onclick="confirmOfflinePayment()">I have Paid ✅ (Verify & Unlock)</button>
-            <button class="btn" style="background: #ea4335;" onclick="payViaRazorpayLink()">Pay via Razorpay Link 💳</button>
+            <button class="btn btn-success" onclick="confirmOfflinePayment()">I have Paid ✅ (Auto Verify & Unlock)</button>
+            <button class="btn" style="background: #2563eb;" onclick="payViaRazorpayLink()">Pay via Razorpay Link 💳</button>
             <button class="btn" style="background: #64748b;" onclick="closePaymentModal()">Cancel</button>
         </div>
+    </div>
+</div>
+
+<!-- INVOICE / RECEIPT MODAL -->
+<div class="modal-overlay" id="invoiceModal">
+    <div class="modal-card" style="text-align: left; max-width: 500px;">
+        <h2 style="color: var(--primary); text-align: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px;">📄 Payment Tax Invoice / Receipt</h2>
+        <div id="invoiceReceiptBody" style="font-size: 0.95rem; line-height: 1.6; margin: 20px 0; background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #cbd5e1;"></div>
+        <button class="btn btn-success" onclick="downloadInvoicePDF()">Download Receipt PDF 📥</button>
+        <button class="btn" style="background: #64748b; margin-top: 10px;" onclick="closeInvoiceModal()">Close Receipt</button>
     </div>
 </div>
 
@@ -463,25 +444,23 @@
     </div>
 </div>
 
-<!-- PDF VIEW MODAL FOR ADMIN & USER (UPDATED WITH SHART / UNLOCK GATE) -->
+<!-- PDF VIEW MODAL FOR USER & ADMIN -->
 <div class="modal-overlay" id="pdfViewModal">
     <div class="modal-card" style="max-width: 600px;">
-        <h2 style="color:var(--primary); margin-top:0;">📄 PDF View & Question-Answer Access</h2>
+        <h2 style="color:var(--primary); margin-top:0;">📄 PDF View & Q&A Access</h2>
         <p id="pdfViewTitleDisplay" style="font-weight: bold; font-size: 1.1rem; color: #1e293b; margin-bottom: 10px;"></p>
         
-        <!-- SHART / UNLOCK REQUIREMENT GATE -->
         <div id="pdfLockedShartBox" style="background: #fffbeb; border: 2px dashed #f59e0b; padding: 20px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
             <h3 style="color: #b45309; margin-top:0;">🔒 Shart (Unlock Condition) Required!</h3>
-            <p style="font-size: 0.9rem; color: #78350f;">PDF ke andar ke **Question & Answers** dekhne ke liye shart poori karein:</p>
+            <p style="font-size: 0.9rem; color: #78350f;">Q&A aur Study Notes dekhne ke liye shart poori karein:</p>
             <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 15px;">
                 <button class="btn btn-warning" style="width: auto; padding: 8px 14px;" onclick="claimYouTubeSubscribeRewardFromModal()">🔴 YouTube Subscribe & Unlock</button>
                 <button class="btn btn-success" style="width: auto; padding: 8px 14px;" onclick="payForPdfFromModal()">💳 Pay ₹<span id="pdfModalPriceSpan"></span> to Unlock</button>
             </div>
         </div>
 
-        <!-- ACTUAL CONTENT AREA (HIDDEN UNTIL SHART IS FULFILLED) -->
         <div id="pdfUnlockedContentArea" style="display: none; background: #f1f5f9; padding: 20px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; color: #475569; text-align: left; max-height: 350px; overflow-y: auto;">
-            <p style="color: var(--secondary); font-weight: bold;">Status: Shart Puri Ho Gayi Hai! Q&A Unlocked ✅</p>
+            <p style="color: var(--secondary); font-weight: bold;">Status: Unlocked ✅</p>
             <div id="pdfContentQuestionsList"></div>
         </div>
 
@@ -508,7 +487,7 @@
     </div>
 
     <div class="alert-banner" id="statusAlert">
-        🔒 Kripya content access karne ke liye <b>Google Login</b> karein. (Admin द्वारा सेट किए गए फ्री सेट्स ही बिना अनलॉक के दिखेंगे!)
+        🔒 Kripya content access karne ke liye <b>Google Login</b> karein.
     </div>
 
     <div class="live-exam-badge" id="userActiveExamBanner">
@@ -525,7 +504,7 @@
             <h3>📚 Official Syllabus & Subjects</h3>
             <ul id="syllabusList" style="margin: 15px 0 25px 20px; line-height: 1.8;"></ul>
 
-            <h3>📄 Study Materials & Exam Study PDFs (View with Shart)</h3>
+            <h3>📄 Study Materials & Exam Study PDFs</h3>
             <div id="pdfSection" style="margin: 15px 0 25px 0;"></div>
 
             <h3>💳 Subscription Plans & Secure Payments</h3>
@@ -540,12 +519,12 @@
                 <div class="test-mode-selector">
                     <div class="mode-card" onclick="startTestMode('topic')">
                         <h3>📂 Part 1: Topic-Wise Practice (10 Questions)</h3>
-                        <p>Subject-wise sets (Up to 30 Sets). Free & Paid configurable by Admin.</p>
+                        <p>Subject-wise sets (Up to 30 Sets).</p>
                         <button class="btn btn-success" style="margin-top: 15px;">Start Topic-Wise Test</button>
                     </div>
                     <div class="mode-card" onclick="startTestMode('full')">
                         <h3>📝 Part 2: Full CBT Mock Test (Real Exam)</h3>
-                        <p>Full-length 90-min exam simulator (Up to 30 Full Mocks). Free & Paid configurable.</p>
+                        <p>Full-length exam simulator (Up to 30 Full Mocks).</p>
                         <button class="btn" style="margin-top: 15px;">Start Full Mock Test</button>
                     </div>
                 </div>
@@ -557,25 +536,41 @@
 
     <div id="adminTab" class="tab-content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="margin:0; color: var(--primary);">⚙️ Admin Control Center</h2>
+            <h2 style="margin:0; color: var(--primary);">⚙️ Admin Control Center & Revenue Analytics</h2>
             <button class="btn btn-danger" style="width: auto; padding: 8px 16px;" onclick="adminLogout()">Logout Admin</button>
         </div>
 
-        <!-- PAYMENT GATEWAY & QR CONFIGURATION MANAGER -->
+        <!-- 5. SALES & REVENUE ANALYTICS -->
+        <div class="card" style="background: #faf5ff; border-color: #e9d5ff;">
+            <h2 style="color: #7e22ce; border-color: #7e22ce;">📊 Sales & Revenue Analytics (Transactions Record)</h2>
+            <div style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
+                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #d8b4fe; flex: 1; min-width: 200px;">
+                    <span style="font-size: 0.85rem; color: #6b21a8; font-weight: bold;">Total Revenue (₹)</span>
+                    <div style="font-size: 1.8rem; font-weight: bold; color: #581c87; margin-top: 5px;" id="adminTotalRevenueDisplay">₹0</div>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #d8b4fe; flex: 1; min-width: 200px;">
+                    <span style="font-size: 0.85rem; color: #6b21a8; font-weight: bold;">Total Paid Transactions</span>
+                    <div style="font-size: 1.8rem; font-weight: bold; color: #581c87; margin-top: 5px;" id="adminTotalSalesCountDisplay">0</div>
+                </div>
+            </div>
+            <div style="max-height: 250px; overflow-y: auto;" id="adminTransactionsTableContainer"></div>
+        </div>
+
+        <!-- PAYMENT GATEWAY & RAZORPAY LINK SETTINGS -->
         <div class="card" style="background: #f0fdf4; border-color: #bbf7d0;">
-            <h2 style="color: #166534; border-color: #166534;">💳 Payment Gateway, UPI & QR Code Settings</h2>
+            <h2 style="color: #166534; border-color: #166534;">💳 Razorpay Payment Link & UPI QR Config</h2>
+            <div class="form-group">
+                <label>Razorpay Payment Link (rzp.io/... - Yeh direct user ke click par khulega)</label>
+                <input type="text" id="adminRazorpayLinkInput" placeholder="https://rzp.io/l/yourpaymentlink">
+            </div>
             <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div class="form-group">
-                    <label>Your UPI ID (e.g. ram@paytm or number@ybl)</label>
-                    <input type="text" id="adminUpiIdInput" placeholder="e.g. targetrank@upi">
+                    <label>UPI ID</label>
+                    <input type="text" id="adminUpiIdInput" placeholder="targetrank@upi">
                 </div>
                 <div class="form-group">
-                    <label>QR Code Image URL (Direct Image Link)</label>
-                    <input type="text" id="adminQrImageInput" placeholder="Paste QR code image link">
-                </div>
-                <div class="form-group" style="grid-column: 1 / -1;">
-                    <label>Razorpay Payment Link (Optional - rzp.io/...)</label>
-                    <input type="text" id="adminRazorpayLinkInput" placeholder="https://rzp.io/l/yourpaymentlink">
+                    <label>QR Code Image URL</label>
+                    <input type="text" id="adminQrImageInput" placeholder="Paste QR link">
                 </div>
             </div>
             <button class="btn btn-success" style="width: auto; padding: 10px 25px;" onclick="savePaymentSettings()">Save Payment Settings ✅</button>
@@ -595,211 +590,89 @@
                 <label>Offer Announcement Text</label>
                 <input type="text" id="adminOfferTextInput" placeholder="e.g. YouTube channel subscribe karne par Mock Test 2 aur PDF free unlock ho jayenge!">
             </div>
-            <div class="form-group">
-                <label>Reward Type / Target for Unlock</label>
-                <select id="adminOfferRewardType">
-                    <option value="mock">Free Full Mock Test / Topic Test Unlock via YouTube</option>
-                    <option value="pdf">Free PDF Study Material Access via YouTube</option>
-                </select>
-            </div>
             <button class="btn btn-success" style="width: auto; padding: 10px 25px;" onclick="saveYouTubeOfferSettings()">Save & Publish Offer</button>
         </div>
 
-        <!-- PORTAL BRANDING & ADMIN EMOJI LOGO -->
+        <!-- BRANDING -->
         <div class="card" style="background: #fdf4ff; border-color: #f5d0fe;">
-            <h2 style="color: #86198f; border-color: #86198f;">🎨 Branding, Admin Emoji Logo & YouTube Live Link</h2>
+            <h2 style="color: #86198f; border-color: #86198f;">🎨 Portal Branding & YouTube Live Link</h2>
             <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div class="form-group">
-                    <label>Portal / Website Name</label>
-                    <input type="text" id="brandSiteNameInput" placeholder="e.g. TargetRank">
+                    <label>Portal Name</label>
+                    <input type="text" id="brandSiteNameInput" placeholder="TargetRank">
                 </div>
                 <div class="form-group">
                     <label>Logo Icon (Emoji)</label>
-                    <input type="text" id="brandLogoEmojiInput" placeholder="e.g. 🎯">
-                </div>
-                <div class="form-group">
-                    <label>Admin Name</label>
-                    <input type="text" id="brandAdminNameInput" placeholder="e.g. Ram">
-                </div>
-                <div class="form-group">
-                    <label>Admin Logo Emoji (e.g. 🏹)</label>
-                    <input type="text" id="brandAdminEmojiInput" placeholder="🏹">
+                    <input type="text" id="brandLogoEmojiInput" placeholder="🎯">
                 </div>
                 <div class="form-group" style="grid-column: 1 / -1;">
-                    <label>YouTube Channel / Live Link</label>
+                    <label>YouTube Live / Channel Link</label>
                     <input type="text" id="brandYouTubeLinkInput" placeholder="https://www.youtube.com/@YourChannel">
                 </div>
             </div>
-            <button class="btn btn-success" style="margin-top: 15px; width: auto; padding: 10px 25px;" onclick="updateBrandingSettings()">Save Branding Settings</button>
-        </div>
-
-        <!-- HELP CENTER MANAGER FOR ADMIN -->
-        <div class="card" style="background: #f0f9ff; border-color: #bae6fd;">
-            <h2 style="color: #0369a1; border-color: #0369a1;">❓ Help Center Content Manager</h2>
-            <div class="form-group">
-                <label>Add Help Step / Instruction Guide:</label>
-                <textarea id="adminHelpInput" rows="3" placeholder="e.g. Step 1: Google Login par click karke Gmail se login karein..."></textarea>
-            </div>
-            <button class="btn btn-success" style="width: auto;" onclick="adminAddHelpStep()">+ Add Help Step</button>
-            <div style="margin-top: 15px; max-height: 180px; overflow-y: auto;" id="adminHelpListContainer"></div>
+            <button class="btn btn-success" style="margin-top: 15px; width: auto; padding: 10px 25px;" onclick="updateBrandingSettings()">Save Branding</button>
         </div>
 
         <div class="card" style="background: #e0e7ff; border-color: #818cf8;">
-            <label style="font-size: 1.1rem; color: #3730a3; margin-bottom: 8px;">🎯 Select Exam to Manage & Upload Content:</label>
+            <label style="font-size: 1.1rem; color: #3730a3; margin-bottom: 8px;">🎯 Select Exam to Manage Content:</label>
             <select id="adminGlobalExamSelect" onchange="onAdminExamChange()" style="padding: 12px; font-weight: bold; font-size: 1rem; background: #ffffff;"></select>
         </div>
 
         <div class="grid">
             <div class="card" style="grid-column: 1 / -1; background: #eff6ff; border-color: #bfdbfe;">
                 <h2 style="color: #1e40af; border-color: #1e40af;">⚙️ Mock Test 1, 2, 3... Free / Paid & YouTube Unlock Control</h2>
-                <p style="font-size: 0.85rem; color: #475569;">Admin decide karega ki kaunsa Mock Test user ko bina payment ke free dikhega ya YouTube subscription / purchase shart par unlock hoga.</p>
                 <div id="adminFullMockStatusList" style="display: flex; gap: 10px; flex-wrap: wrap; max-height: 200px; overflow-y: auto;"></div>
             </div>
 
             <div class="card" style="grid-column: 1 / -1; background: #fef2f2; border-color: #fecaca;">
-                <h2 style="color: #991b1b; border-color: #991b1b;">⚡ Flash News Manager (Upload & Delete)</h2>
+                <h2 style="color: #991b1b; border-color: #991b1b;">⚡ Flash News Manager</h2>
                 <div class="form-group">
-                    <label>Type or Paste Flash News / Announcement:</label>
-                    <textarea id="adminFlashInput" rows="2" placeholder="e.g. RRB NTPC Admit Card out! Download now..."></textarea>
+                    <label>Add Flash Announcement:</label>
+                    <textarea id="adminFlashInput" rows="2" placeholder="RRB NTPC CBT 1 Live..."></textarea>
                 </div>
                 <button class="btn btn-danger" onclick="adminAddFlashNews()">+ Add Flash News</button>
                 <div style="margin-top: 15px; max-height: 150px; overflow-y: auto;" id="adminFlashListContainer"></div>
             </div>
 
-            <div class="card" style="grid-column: 1 / -1; background: #f0fdf4; border-color: #bbf7d0;">
-                <h2 style="color: #166534; border-color: #166534;">0. Add / Remove Exams (Unlimited Control)</h2>
-                <div class="grid" style="grid-template-columns: 1fr 2fr auto; gap: 15px; align-items: flex-end;">
-                    <div class="form-group" style="margin:0;">
-                        <label>Category</label>
-                        <input type="text" id="newExamCategory" placeholder="e.g. Railway">
-                    </div>
-                    <div class="form-group" style="margin:0;">
-                        <label>Exam / CBT Title</label>
-                        <input type="text" id="newExamTitleInput" placeholder="e.g. RRB NTPC CBT 2">
-                    </div>
-                    <button class="btn btn-success" style="height: 42px;" onclick="addNewExam()">+ Add Exam</button>
-                </div>
-                <div style="margin-top: 15px; max-height: 150px; overflow-y: auto;" id="adminExamListContainer"></div>
-            </div>
-
             <div class="card">
-                <h2>1. Update Admin Password</h2>
-                <div class="form-group">
-                    <label>New Admin Password</label>
-                    <input type="text" id="newAdminPassInput" placeholder="Enter new secure password">
-                </div>
-                <button class="btn btn-warning" onclick="updateAdminPassword()">Save New Password</button>
-            </div>
-
-            <div class="card">
-                <h2>2. Subscription Plans & Combo Offers</h2>
+                <h2>Subscription Plans Setup</h2>
                 <div class="form-group">
                     <label>Plan Category</label>
                     <select id="adminPlanCategory">
-                        <option value="topic">Part 1: Topic-Wise Practice Plan</option>
-                        <option value="full">Part 2: Full CBT Mock Test Plan</option>
-                        <option value="combo">Combo Plan (Mock + Free PDFs)</option>
+                        <option value="topic">Topic-Wise Practice Plan</option>
+                        <option value="full">Full CBT Mock Test Plan</option>
+                        <option value="combo">Combo Plan (Mock + PDFs)</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Validity (Days)</label>
-                    <input type="number" id="adminPlanDays" min="1" placeholder="30">
+                    <input type="number" id="adminPlanDays" value="30">
                 </div>
                 <div class="form-group">
                     <label>Price (₹)</label>
-                    <input type="number" id="adminPlanPrice" min="1" placeholder="99">
+                    <input type="number" id="adminPlanPrice" value="99">
                 </div>
                 <div class="form-group">
                     <label>Daily Test Limit</label>
-                    <input type="number" id="adminPlanDailyLimit" min="1" placeholder="5">
+                    <input type="number" id="adminPlanDailyLimit" value="5">
                 </div>
                 <button class="btn btn-success" onclick="adminAddPlan()">Add Plan</button>
                 <div style="margin-top: 15px; max-height: 180px; overflow-y: auto;" id="adminPlanListContainer"></div>
             </div>
 
-            <!-- 3. UPLOAD PDFs WITH Q&A & SHART OPTIONS -->
             <div class="card">
-                <h2>3. Upload PDFs with Q&A & Shart Option (All Exams)</h2>
+                <h2>Upload PDFs with Q&A & Price</h2>
                 <div class="form-group">
                     <label>PDF Title & Price (₹)</label>
-                    <input type="text" id="adminPdfName" placeholder="e.g. RRB NTPC Complete Study Notes PDF">
-                    <input type="number" id="adminPdfPrice" placeholder="Price in ₹ (e.g. 29)" style="margin-top: 8px;">
+                    <input type="text" id="adminPdfName" placeholder="Study Notes PDF">
+                    <input type="number" id="adminPdfPrice" placeholder="29" style="margin-top: 8px;">
                 </div>
                 <div class="form-group">
-                    <label>PDF Q&A Content (Questions & Answers for View Mode)</label>
-                    <textarea id="adminPdfQnAInput" rows="3" placeholder="Q1: ... Ans: ... \nQ2: ... Ans: ..."></textarea>
+                    <label>PDF Q&A Content</label>
+                    <textarea id="adminPdfQnAInput" rows="3" placeholder="Q1: ... Ans: ..."></textarea>
                 </div>
-                <div class="form-group">
-                    <label>Attach PDF File (Optional)</label>
-                    <input type="file" id="adminPdfFile" accept="application/pdf" style="padding: 8px; background: #f8fafc; border: 1px dashed var(--border-color); border-radius: 6px;">
-                </div>
-                <button class="btn btn-success" onclick="adminAddPdf()">Upload & Save PDF with Shart Gate 📄</button>
+                <button class="btn btn-success" onclick="adminAddPdf()">Upload PDF 📄</button>
                 <div style="margin-top: 15px; max-height: 180px; overflow-y: auto;" id="adminPdfListContainer"></div>
-            </div>
-
-            <div class="card" style="grid-column: 1 / -1;">
-                <h2>4. Universal Question Manager</h2>
-                <div class="grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-                    <div class="form-group">
-                        <label>Select Test Type</label>
-                        <select id="adminTestType" onchange="toggleTestNumberDropdown()">
-                            <option value="topic">Part 1: Topic-Wise (10 Questions)</option>
-                            <option value="full">Part 2: Full Mock</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="topicSelectGroup">
-                        <label>Select Subject Topic</label>
-                        <select id="adminQTopic"></select>
-                    </div>
-                    <div class="form-group">
-                        <label>Test Number (1 to 30)</label>
-                        <select id="adminTestNum"></select>
-                    </div>
-                </div>
-
-                <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="form-group">
-                        <label>Question in English</label>
-                        <textarea id="adminQTextEn" rows="2" placeholder="Question in English..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Question in Hindi (हिंदी प्रश्न)</label>
-                        <textarea id="adminQTextHi" rows="2" placeholder="हिंदी में प्रश्न..."></textarea>
-                    </div>
-                </div>
-
-                <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="form-group">
-                        <label>Option A (En)</label>
-                        <input type="text" id="adminOptAEn" placeholder="Option A English">
-                        <input type="text" id="adminOptAHi" placeholder="विकल्प A हिंदी" style="margin-top:5px;">
-                    </div>
-                    <div class="form-group">
-                        <label>Option B (En)</label>
-                        <input type="text" id="adminOptBEn" placeholder="Option B English">
-                        <input type="text" id="adminOptBHi" placeholder="विकल्प B हिंदी" style="margin-top:5px;">
-                    </div>
-                    <div class="form-group">
-                        <label>Option C (En)</label>
-                        <input type="text" id="adminOptCEn" placeholder="Option C English">
-                        <input type="text" id="adminOptCHi" placeholder="विकल्प C हिंदी" style="margin-top:5px;">
-                    </div>
-                    <div class="form-group">
-                        <label>Option D (En)</label>
-                        <input type="text" id="adminOptDEn" placeholder="Option D English">
-                        <input type="text" id="adminOptDHi" placeholder="विकल्प D हिंदी" style="margin-top:5px;">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Correct Option Index (0 = A, 1 = B, 2 = C, 3 = D)</label>
-                    <input type="number" id="adminQCorrect" min="0" max="3" value="0">
-                </div>
-
-                <button class="btn btn-success" onclick="adminAddQuestion()">Add / Update Question Securely</button>
-                
-                <h3 style="margin-top: 20px;">Manage Stored Questions & Tests (View, Edit & Delete):</h3>
-                <div id="adminQuestionListContainer" style="max-height: 300px; overflow-y: auto;"></div>
             </div>
         </div>
     </div>
@@ -812,6 +685,7 @@
     let selectedExamKey = "";
     let currentPendingPayment = null;
     let activePdfViewingIndex = null;
+    let lastGeneratedReceipt = null;
 
     if(!localStorage.getItem('targetrank_admin_pass')) {
         localStorage.setItem('targetrank_admin_pass', 'admin123');
@@ -833,50 +707,42 @@
 
     let youtubeOffer = JSON.parse(localStorage.getItem('targetrank_yt_offer')) || {
         active: "yes",
-        text: "Hamara YouTube channel subscribe karne aur full video dekhne par Mock Test 2 aur PDF bilkul FREE unlock ho jayenge!",
+        text: "Hamara YouTube channel subscribe karne aur full video dekhne par sabhi PDFs aur Mock Test #2 bilkul FREE unlock ho jayenge!",
         reward: "mock"
     };
 
     let helpStepsList = JSON.parse(localStorage.getItem('targetrank_help_steps')) || [
-        "Step 1: Top right corner par 'Google Login' button par click karke apna Gmail ID enter karein.",
-        "Step 2: Dashboard par apne pasand ka Exam select karein aur syllabus ya free PDFs dekhein.",
-        "Step 3: Test dene ke liye 'Live Mock Test' tab par click karein. Admin द्वारा सेट किए गए Free Set बिना अनलॉक के दिखेंगे, बाकी के लिए Unlock/Payment shart poori karni hogi.",
-        "Step 4: PDF View karte samay Q&A dekhne ke liye YouTube subscription ya payment ki shart poori karni hogi."
+        "Step 1: Top right corner par 'Google Login' button par click karke apna Gmail enter karein.",
+        "Step 2: Dashboard par apna exam select karein.",
+        "Step 3: Test ya PDF ke liye payment ya YouTube shart poori karein."
     ];
 
-    let defaultExamsList = [
+    let allExamsList = JSON.parse(localStorage.getItem('targetrank_exams')) || [
         "Railway - RRB NTPC CBT 1",
         "Railway - RRB Group D",
-        "UP Police - UP Police Constable",
-        "Delhi Police - Delhi Police Constable"
+        "UP Police - UP Police Constable"
     ];
 
-    let allExamsList = JSON.parse(localStorage.getItem('targetrank_exams')) || defaultExamsList;
     let flashNewsList = JSON.parse(localStorage.getItem('targetrank_flash')) || [
-        "TargetRank par sabhi exams ke liye Mock Tests aur Study PDFs live hain! Naye updates ke liye regular visit karein."
+        "TargetRank par sabhi exams ke liye Mock Tests aur Study PDFs live hain!"
     ];
 
     let freeFullMocks = JSON.parse(localStorage.getItem('targetrank_free_mocks')) || {
         "Railway - RRB NTPC CBT 1": [1]
     };
 
+    let transactionsHistory = JSON.parse(localStorage.getItem('targetrank_transactions')) || [];
+
     const examSyllabusMap = {
         "Railway": [
-            "General Awareness (History, Polity, Geography, Economy, Physics, Chemistry, Biology & Current Affairs)",
-            "Mathematics (Number System, Decimals, Fractions, Percentage, Ratio, Mensuration, Time & Work, Profit & Loss)",
-            "General Intelligence & Reasoning (Analogies, Series, Coding-Decoding, Mathematical Operations, Syllogism, Venn Diagrams)"
+            "General Awareness (History, Polity, Geography, Economy, Science & Current Affairs)",
+            "Mathematics (Number System, Percentage, Ratio, Mensuration, Time & Work, Profit & Loss)",
+            "General Intelligence & Reasoning (Analogies, Series, Coding-Decoding, Syllogism)"
         ],
         "UP Police": [
-            "General Hindi (सामान्य हिंदी - व्याकरण, रचनाएँ, शब्दावली)",
+            "General Hindi (सामान्य हिंदी)",
             "Numerical & Mental Ability (संख्यात्मक एवं मानसिक योग्यता)",
-            "Mental Aptitude / IQ / Reasoning (मानसिक अभिरुचि, बुद्धि लब्धि एवं तार्किक क्षमता)",
-            "General Awareness (सामान्य ज्ञान - उत्तर प्रदेश विशेष, इतिहास, संविधान, कानून व्यवस्था)"
-        ],
-        "Delhi Police": [
-            "General Knowledge & Current Affairs (सामान्य ज्ञान एवं समसामयिक विषय)",
-            "Reasoning (तार्किक क्षमता)",
-            "Numerical Ability (संख्यात्मक क्षमता)",
-            "Computer Fundamentals (कंप्यूटर बुनियादी बातें - MS Excel, MS Word, Internet, Communications)"
+            "General Awareness (सामान्य ज्ञान)"
         ]
     };
 
@@ -890,10 +756,28 @@
         }
         refreshApp();
         renderFlashNewsTicker();
+        renderAdminTransactionsTable();
     });
 
+    // 2. VALIDITY & EXPIRY CHECK (AUTO-LOCK SYSTEM)
+    function checkUserSubscriptionExpiry() {
+        if(!currentUser) return;
+        let expiryDateStr = localStorage.getItem('sub_expiry_' + currentUser.email);
+        if(expiryDateStr) {
+            let expiryDate = new Date(expiryDateStr);
+            let today = new Date();
+            if(today > expiryDate) {
+                // Expired! Lock system
+                userSubscriptions = {};
+                localStorage.removeItem('subs_' + currentUser.email);
+                alert("⏰ Aapke subscription ki validity (30 Days) samapt ho chuki hai! Kripya dobara plan kharidein.");
+                switchTab(null, 'portalTab');
+            }
+        }
+    }
+
     function applyBrandingToUI() {
-        document.getElementById('pageTitleMeta').innerText = `${siteBranding.name} - Complete Educational Portal & Admin Dashboard`;
+        document.getElementById('pageTitleMeta').innerText = `${siteBranding.name} - Complete Educational Portal`;
         document.getElementById('headerLogoIcon').innerText = siteBranding.icon;
         document.getElementById('headerLogoText').innerText = siteBranding.name;
         document.getElementById('adminNameSpan').innerText = siteBranding.adminName;
@@ -902,8 +786,6 @@
 
         document.getElementById('brandSiteNameInput').value = siteBranding.name;
         document.getElementById('brandLogoEmojiInput').value = siteBranding.icon;
-        document.getElementById('brandAdminNameInput').value = siteBranding.adminName;
-        document.getElementById('brandAdminEmojiInput').value = siteBranding.adminEmoji || "🏹";
         document.getElementById('brandYouTubeLinkInput').value = siteBranding.youtubeLink || "";
     }
 
@@ -917,12 +799,10 @@
         let upiId = document.getElementById('adminUpiIdInput').value.trim();
         let qrImage = document.getElementById('adminQrImageInput').value.trim();
         let razorpayLink = document.getElementById('adminRazorpayLinkInput').value.trim();
-
-        if(!upiId || !qrImage) return alert("Kripya UPI ID aur QR Image link dono bharein!");
-
+        if(!upiId || !qrImage) return alert("Kripya UPI ID aur QR link bharein!");
         paymentConfig = { upiId, qrImage, razorpayLink };
         localStorage.setItem('targetrank_pay_config', JSON.stringify(paymentConfig));
-        alert("✅ Payment settings successfully update ho gayi hain!");
+        alert("✅ Payment settings successfully updated!");
     }
 
     function applyYouTubeOfferUI() {
@@ -933,43 +813,34 @@
         } else {
             banner.style.display = "none";
         }
-
         document.getElementById('adminOfferActive').value = youtubeOffer.active;
         document.getElementById('adminOfferTextInput').value = youtubeOffer.text;
-        document.getElementById('adminOfferRewardType').value = youtubeOffer.reward;
     }
 
     function saveYouTubeOfferSettings() {
         let active = document.getElementById('adminOfferActive').value;
         let text = document.getElementById('adminOfferTextInput').value.trim();
-        let reward = document.getElementById('adminOfferRewardType').value;
-
-        if(!text) return alert("Kripya offer text enter karein!");
-
-        youtubeOffer = { active, text, reward };
+        youtubeOffer = { active, text, reward: "mock" };
         localStorage.setItem('targetrank_yt_offer', JSON.stringify(youtubeOffer));
         applyYouTubeOfferUI();
-        alert("✅ YouTube offer successfully updated and published!");
+        alert("✅ YouTube offer updated successfully!");
     }
 
     function claimYouTubeSubscribeReward() {
         if(!currentUser) {
-            alert("🔒 Pehle Google Login karein taaki reward aapke account mein jud sake!");
+            alert("🔒 Pehle Google Login karein!");
             return;
         }
         window.open(siteBranding.youtubeLink || "https://www.youtube.com", "_blank");
-        
         setTimeout(() => {
             userSubscriptions.yt_reward_pdf = true;
             if(!freeFullMocks[selectedExamKey]) freeFullMocks[selectedExamKey] = [1];
             if(!freeFullMocks[selectedExamKey].includes(2)) freeFullMocks[selectedExamKey].push(2);
             saveDB();
-            alert("🎉 Badhai ho! YouTube channel subscribe aur full video dekhne par sabhi PDFs ke Q&A aur Mock Test #2 unlock kar diye gaye hain!");
+            alert("🎉 Badhai ho! YouTube subscribe aur video dekhne par Mock Test #2 aur sabhi PDFs ke Q&A unlock kar diye gaye hain!");
             renderAdminFullMockToggles();
             renderPdfs();
-            if(activePdfViewingIndex !== null) {
-                openPdfUser(activePdfViewingIndex);
-            }
+            if(activePdfViewingIndex !== null) openPdfUser(activePdfViewingIndex);
         }, 3000);
     }
 
@@ -984,79 +855,21 @@
         initiatePayment(pdf.name, pdf.price, 'pdf');
     }
 
-    function openHelpModal() {
-        renderHelpModalContent();
-        document.getElementById('helpModal').style.display = 'flex';
-    }
-
-    function closeHelpModal() {
-        document.getElementById('helpModal').style.display = 'none';
-    }
-
+    function openHelpModal() { document.getElementById('helpModal').style.display = 'flex'; }
+    function closeHelpModal() { document.getElementById('helpModal').style.display = 'none'; }
     function renderHelpModalContent() {
-        let html = '';
-        helpStepsList.forEach((step, i) => {
-            html += `<p style="margin-bottom: 12px;">✅ <b>${step}</b></p>`;
-        });
+        let html = helpStepsList.map(s => `<p>✅ <b>${s}</b></p>`).join('');
         let bodyEl = document.getElementById('helpModalContentBody');
         if(bodyEl) bodyEl.innerHTML = html;
-        renderAdminHelpList();
-    }
-
-    function adminAddHelpStep() {
-        let txt = document.getElementById('adminHelpInput').value.trim();
-        if(!txt) return alert("Kripya help step text enter karein!");
-        helpStepsList.push(txt);
-        localStorage.setItem('targetrank_help_steps', JSON.stringify(helpStepsList));
-        document.getElementById('adminHelpInput').value = "";
-        renderHelpModalContent();
-        alert("✅ Help step successfully added!");
-    }
-
-    function deleteHelpStep(idx) {
-        helpStepsList.splice(idx, 1);
-        localStorage.setItem('targetrank_help_steps', JSON.stringify(helpStepsList));
-        renderHelpModalContent();
-    }
-
-    function renderAdminHelpList() {
-        let html = '';
-        helpStepsList.forEach((step, i) => {
-            html += `
-                <div class="list-item-admin">
-                    <span style="font-size:0.85rem;">${step}</span>
-                    <button class="btn btn-danger" style="width:auto; padding:4px 8px; font-size:0.75rem;" onclick="deleteHelpStep(${i})">Delete</button>
-                </div>
-            `;
-        });
-        let container = document.getElementById('adminHelpListContainer');
-        if(container) container.innerHTML = html;
-    }
-
-    function updateBrandingSettings() {
-        let newName = document.getElementById('brandSiteNameInput').value.trim();
-        let newIcon = document.getElementById('brandLogoEmojiInput').value.trim();
-        let newAdmin = document.getElementById('brandAdminNameInput').value.trim();
-        let newEmoji = document.getElementById('brandAdminEmojiInput').value.trim();
-        let newYt = document.getElementById('brandYouTubeLinkInput').value.trim();
-
-        if(!newName || !newIcon || !newAdmin || !newEmoji) {
-            return alert("Kripya main branding fields bharein!");
-        }
-
-        siteBranding = { name: newName, icon: newIcon, adminName: newAdmin, adminEmoji: newEmoji, youtubeLink: newYt };
-        localStorage.setItem('targetrank_brand', JSON.stringify(siteBranding));
-        applyBrandingToUI();
-        alert("✅ Branding aur Admin emoji successfully update ho gaye hain!");
     }
 
     let defaultExamDatabase = {
         "Railway - RRB NTPC CBT 1": {
             pdfs: [
-                { id: 1, exam: "Railway - RRB NTPC CBT 1", name: "RRB NTPC Complete Static GK Notes PDF", price: 49, qna: "Q1: First Railway in India? Ans: 1853\nQ2: HQ of Railway Board? Ans: New Delhi", fileData: "" }
+                { id: 1, exam: "Railway - RRB NTPC CBT 1", name: "RRB NTPC Complete GK Notes PDF", price: 49, qna: "Q1: First Railway? Ans: 1853\nQ2: HQ? Ans: New Delhi" }
             ],
             plans: [
-                { id: 1, category: "topic", days: 7, price: 29, dailyLimit: 10 },
+                { id: 1, category: "topic", days: 30, price: 99, dailyLimit: 5 },
                 { id: 2, category: "combo", days: 30, price: 149, dailyLimit: 10 }
             ],
             topicTests: {},
@@ -1071,6 +884,7 @@
         localStorage.setItem('targetrank_exams', JSON.stringify(allExamsList));
         localStorage.setItem('targetrank_flash', JSON.stringify(flashNewsList));
         localStorage.setItem('targetrank_free_mocks', JSON.stringify(freeFullMocks));
+        localStorage.setItem('targetrank_transactions', JSON.stringify(transactionsHistory));
     }
 
     function refreshApp() {
@@ -1080,19 +894,10 @@
             adminGlobal.innerHTML = allExamsList.map(e => `<option value="${e}">${e}</option>`).join('');
             adminGlobal.value = selectedExamKey;
         }
-
-        let numOpts = '';
-        for(let i=1; i<=30; i++) {
-            numOpts += `<option value="${i}">Test Set #${i} ${i===1 ? '(Set #1: FREE)' : '(Set #'+i+': PAID/LOCKED)'}</option>`;
-        }
-        document.getElementById('adminTestNum').innerHTML = numOpts;
-
         if(!allExamsList.includes(selectedExamKey) && allExamsList.length > 0) {
             selectedExamKey = allExamsList[0];
         }
         selectExamKey(selectedExamKey);
-        renderAdminExamList();
-        renderAdminFlashList();
         renderAdminFullMockToggles();
     }
 
@@ -1101,11 +906,7 @@
         let html = '';
         for(let i=1; i<=30; i++) {
             let isFree = freeFullMocks[selectedExamKey].includes(i);
-            html += `
-                <button class="btn ${isFree ? 'btn-success' : 'btn-danger'}" style="width: auto; padding: 6px 12px; font-size: 0.85rem;" onclick="toggleFullMockFree(${i})">
-                    Mock #${i} : ${isFree ? 'FREE (Visible) ✅' : 'LOCKED/PAID 🔒'}
-                </button>
-            `;
+            html += `<button class="btn ${isFree ? 'btn-success' : 'btn-danger'}" style="width: auto; padding: 6px 12px; font-size: 0.85rem;" onclick="toggleFullMockFree(${i})">Mock #${i} : ${isFree ? 'FREE ✅' : 'LOCKED 🔒'}</button>`;
         }
         document.getElementById('adminFullMockStatusList').innerHTML = html;
     }
@@ -1113,78 +914,29 @@
     function toggleFullMockFree(setNum) {
         if(!freeFullMocks[selectedExamKey]) freeFullMocks[selectedExamKey] = [1];
         let idx = freeFullMocks[selectedExamKey].indexOf(setNum);
-        if(idx > -1) {
-            freeFullMocks[selectedExamKey].splice(idx, 1);
-            alert(`🔒 Full Mock Test #${setNum} ab LOCKED/PAID ho gaya hai.`);
-        } else {
-            freeFullMocks[selectedExamKey].push(setNum);
-            alert(`✅ Full Mock Test #${setNum} ab FREE (Direct Visible) ho gaya hai!`);
-        }
+        if(idx > -1) freeFullMocks[selectedExamKey].splice(idx, 1);
+        else freeFullMocks[selectedExamKey].push(setNum);
         saveDB();
         renderAdminFullMockToggles();
     }
 
     function renderFlashNewsTicker() {
         let ticker = document.getElementById('flashNewsTickerText');
-        if(flashNewsList.length > 0) {
-            ticker.innerText = flashNewsList.join("   |   ");
-        } else {
-            ticker.innerText = `${siteBranding.name} Educational Portal — All updates will appear here.`;
-        }
+        ticker.innerText = flashNewsList.join("   |   ");
     }
 
     function adminAddFlashNews() {
         let text = document.getElementById('adminFlashInput').value.trim();
-        if(!text) return alert("Kripya flash news text type ya paste karein!");
+        if(!text) return alert("Enter news text!");
         flashNewsList.push(text);
         saveDB();
         renderFlashNewsTicker();
-        renderAdminFlashList();
-        alert("✅ Flash news successfully live ho gayi hai!");
         document.getElementById('adminFlashInput').value = "";
-    }
-
-    function deleteFlashNews(idx) {
-        flashNewsList.splice(idx, 1);
-        saveDB();
-        renderFlashNewsTicker();
-        renderAdminFlashList();
-    }
-
-    function renderAdminFlashList() {
-        let html = '';
-        flashNewsList.forEach((news, i) => {
-            html += `
-                <div class="list-item-admin">
-                    <span style="font-size:0.9rem;">📢 ${news}</span>
-                    <button class="btn btn-danger" style="width:auto; padding:4px 10px; font-size:0.8rem;" onclick="deleteFlashNews(${i})">Delete</button>
-                </div>
-            `;
-        });
-        document.getElementById('adminFlashListContainer').innerHTML = html || '<p style="color:#64748b; font-size:0.85rem;">No flash news added.</p>';
+        alert("✅ Flash news added!");
     }
 
     function renderNavigationTabs() {
-        let categories = {};
-        allExamsList.forEach(item => {
-            let parts = item.split(' - ');
-            let cat = parts[0] || "Exams";
-            let post = parts[1] || item;
-            if(!categories[cat]) categories[cat] = [];
-            categories[cat].push(post);
-        });
-
-        let navHtml = '';
-        for(let cat in categories) {
-            let dropdownItems = categories[cat].map(p => `<a href="#" onclick="selectExamKey('${cat} - ${p}')">${p}</a>`).join('');
-            navHtml += `
-                <div class="nav-item">
-                    <button class="nav-btn">${cat} ▼</button>
-                    <div class="dropdown">${dropdownItems}</div>
-                </div>
-            `;
-        }
-        navHtml += `
+        let navHtml = `
             <button class="tab-btn active" onclick="switchTab(event, 'portalTab')">Dashboard & Content</button>
             <button class="tab-btn" onclick="switchTab(event, 'testTab')">Live Mock Test</button>
             <button class="tab-btn" id="adminNavBtn" style="display:none;" onclick="switchTab(event, 'adminTab')">Admin Dashboard</button>
@@ -1197,130 +949,61 @@
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         if(evt) evt.currentTarget.classList.add('active');
-
-        if(tabId === 'testTab') {
-            resetTestSelectionScreen();
-        }
+        if(tabId === 'testTab') resetTestSelectionScreen();
     }
 
     function selectExamKey(fullKey) {
         selectedExamKey = fullKey;
         let parts = fullKey.split(' - ');
         let category = parts[0];
-        let post = parts[1] || fullKey;
-
         document.getElementById('currentExamTitle').innerText = `Selected Exam: ${fullKey}`;
         document.getElementById('currentCategoryText').innerText = `Category: ${category}`;
         document.getElementById('userActiveExamBanner').innerHTML = `📖 Active Selected Exam: <b>${fullKey}</b>`;
         
-        let adminGlobal = document.getElementById('adminGlobalExamSelect');
-        if(adminGlobal) adminGlobal.value = fullKey;
-
         let topics = examSyllabusMap[category] || ["General Awareness", "Mathematics", "Reasoning"];
-        let sylHtml = '';
-        topics.forEach(t => sylHtml += `<li>${t}</li>`);
-        document.getElementById('syllabusList').innerHTML = sylHtml;
+        document.getElementById('syllabusList').innerHTML = topics.map(t => `<li>${t}</li>`).join('');
 
         if(!examDatabase[fullKey]) {
             examDatabase[fullKey] = {
-                pdfs: [{ id: Date.now(), exam: fullKey, name: `${post} Master Guide PDF`, price: 59, qna: "Q1: Sample Question? Ans: Sample Answer", fileData: "" }],
-                plans: [
-                    { id: 1, category: "topic", days: 7, price: 29, dailyLimit: 10 },
-                    { id: 2, category: "full", days: 30, price: 99, dailyLimit: 5 }
-                ],
-                topicTests: {},
-                fullTests: {}
+                pdfs: [{ id: Date.now(), exam: fullKey, name: `${fullKey} Notes PDF`, price: 49, qna: "Q1: Sample? Ans: Answer" }],
+                plans: [{ id: 1, category: "full", days: 30, price: 99, dailyLimit: 5 }],
+                topicTests: {}, fullTests: {}
             };
             saveDB();
         }
-
-        updateAdminTopicDropdowns();
         renderPdfs();
         renderPlans();
-        resetTestSelectionScreen();
-        switchTab(null, 'portalTab');
-        renderAdminLists();
-        renderAdminFullMockToggles();
     }
 
     function onAdminExamChange() {
-        let selectedVal = document.getElementById('adminGlobalExamSelect').value;
-        selectExamKey(selectedVal);
+        selectedExamKey = document.getElementById('adminGlobalExamSelect').value;
+        selectExamKey(selectedExamKey);
     }
 
-    function updateAdminTopicDropdowns() {
-        let category = selectedExamKey.split(' - ')[0];
-        let topics = examSyllabusMap[category] || ["General Awareness", "Mathematics", "Reasoning"];
-        let optionsHtml = topics.map(t => `<option value="${t}">${t}</option>`).join('');
-        
-        const qTopicEl = document.getElementById('adminQTopic');
-        if(qTopicEl) qTopicEl.innerHTML = optionsHtml;
-    }
-
-    // UPLOAD PDF WITH Q&A & SHART OPTION
     function adminAddPdf() {
         let name = document.getElementById('adminPdfName').value.trim();
         let price = parseFloat(document.getElementById('adminPdfPrice').value) || 0;
         let qna = document.getElementById('adminPdfQnAInput').value.trim();
-        let fileInput = document.getElementById('adminPdfFile');
+        if(!name) return alert("Enter PDF Title!");
 
-        if(!name) return alert("Kripya PDF ka title enter karein!");
-
-        let reader = new FileReader();
-        let file = fileInput.files[0];
-
-        if(file) {
-            reader.readAsDataURL(file);
-            reader.onload = function () {
-                savePdfRecord(name, price, qna, reader.result);
-            };
-        } else {
-            savePdfRecord(name, price, qna, "");
-        }
-    }
-
-    function savePdfRecord(name, price, qna, fileData) {
-        if(!examDatabase[selectedExamKey]) {
-            examDatabase[selectedExamKey] = { pdfs: [], plans: [], topicTests: {}, fullTests: {} };
-        }
-        examDatabase[selectedExamKey].pdfs.push({
-            id: Date.now(),
-            exam: selectedExamKey,
-            name: name,
-            price: price,
-            qna: qna || "Q1: Sample Question? Ans: Sample Answer",
-            fileData: fileData
-        });
+        examDatabase[selectedExamKey].pdfs.push({ id: Date.now(), exam: selectedExamKey, name, price, qna: qna || "Q1: Demo? Ans: Demo" });
         saveDB();
         renderPdfs();
-        renderAdminLists();
-        alert(`✅ PDF "${name}" successfully ${selectedExamKey} ke liye upload ho gayi hai!`);
+        alert("✅ PDF uploaded successfully!");
         document.getElementById('adminPdfName').value = "";
         document.getElementById('adminPdfPrice').value = "";
-        document.getElementById('adminPdfQnAInput').value = "";
-        document.getElementById('adminPdfFile').value = "";
     }
 
     function renderPdfs() {
         let pdfs = examDatabase[selectedExamKey]?.pdfs || [];
-        let pdfHtml = '';
-        pdfs.forEach((p, idx) => {
-            pdfHtml += `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 10px; flex-wrap:wrap; gap:10px;">
-                    <div>
-                        <b>📄 ${p.name}</b> <br>
-                        <span style="font-size:0.8rem; color:#64748b;">Exam: ${p.exam || selectedExamKey} | Price: ₹${p.price}</span>
-                    </div>
-                    <div style="display:flex; gap:8px;">
-                        <button class="btn" style="background:#0284c7; width: auto; padding: 6px 12px; font-size:0.85rem;" onclick="openPdfUser(${idx})">View Q&A / PDF 👁️</button>
-                    </div>
-                </div>
-            `;
-        });
-        document.getElementById('pdfSection').innerHTML = pdfHtml || '<p style="color:#64748b;">No PDFs uploaded for this exam yet.</p>';
+        document.getElementById('pdfSection').innerHTML = pdfs.map((p, idx) => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 10px;">
+                <div><b>📄 ${p.name}</b><br><span style="font-size:0.8rem; color:#64748b;">Price: ₹${p.price}</span></div>
+                <button class="btn" style="background:#0284c7; width: auto; padding: 6px 12px;" onclick="openPdfUser(${idx})">View Q&A 👁️</button>
+            </div>
+        `).join('') || '<p style="color:#64748b;">No PDFs uploaded.</p>';
     }
 
-    // PDF VIEW WITH SHART (QUESTION-ANSWER GATE)
     function openPdfUser(index) {
         activePdfViewingIndex = index;
         let pdf = examDatabase[selectedExamKey].pdfs[index];
@@ -1328,121 +1011,127 @@
         document.getElementById('pdfModalPriceSpan').innerText = pdf.price;
 
         let isUnlocked = userSubscriptions.yt_reward_pdf || userSubscriptions.combo || pdf.price === 0;
-
-        let lockedBox = document.getElementById('pdfLockedShartBox');
-        let unlockedArea = document.getElementById('pdfUnlockedContentArea');
+        document.getElementById('pdfLockedShartBox').style.display = isUnlocked ? "none" : "block";
+        document.getElementById('pdfUnlockedContentArea').style.display = isUnlocked ? "block" : "none";
 
         if(isUnlocked) {
-            lockedBox.style.display = "none";
-            unlockedArea.style.display = "block";
-            let qnaFormatted = (pdf.qna || "").replace(/\n/g, '<br>');
-            document.getElementById('pdfContentQuestionsList').innerHTML = `
-                <p><b>Question & Answers (Q&A):</b></p>
-                <div style="background:#fff; padding:12px; border-radius:6px; border:1px solid #cbd5e1; margin-bottom:10px;">${qnaFormatted}</div>
-                ${pdf.fileData ? `<button class="btn btn-success" onclick="downloadPdfFile(${index})">Download Original PDF File 📥</button>` : ''}
-            `;
-        } else {
-            lockedBox.style.display = "block";
-            unlockedArea.style.display = "none";
+            document.getElementById('pdfContentQuestionsList').innerHTML = `<div style="background:#fff; padding:12px; border-radius:6px; border:1px solid #cbd5e1;">${(pdf.qna || "").replace(/\n/g, '<br>')}</div>`;
         }
-
         document.getElementById('pdfViewModal').style.display = 'flex';
     }
 
-    function downloadPdfFile(index) {
-        let pdf = examDatabase[selectedExamKey].pdfs[index];
-        if(pdf.fileData) {
-            let a = document.createElement('a');
-            a.href = pdf.fileData;
-            a.download = `${pdf.name}.pdf`;
-            a.click();
-        } else {
-            alert(`📥 Downloading PDF: ${pdf.name}`);
-        }
-    }
-
-    function closePdfViewModal() {
-        document.getElementById('pdfViewModal').style.display = 'none';
-    }
-
-    function deleteAdminPdf(index) {
-        if(confirm("Kya aap is PDF ko delete karna chahte hain?")) {
-            examDatabase[selectedExamKey].pdfs.splice(index, 1);
-            saveDB();
-            renderPdfs();
-            renderAdminLists();
-            alert("✅ PDF successfully delete ho gayi hai.");
-        }
-    }
+    function closePdfViewModal() { document.getElementById('pdfViewModal').style.display = 'none'; }
 
     function renderPlans() {
         const plans = examDatabase[selectedExamKey]?.plans || [];
-        let plansHtml = '';
-
-        plans.forEach(pl => {
-            let catName = pl.category === 'topic' ? 'Topic-Wise Practice Plan' : (pl.category === 'full' ? 'Full CBT Mock Plan' : '⭐ Mega Combo (Mock + PDFs Free)');
-            plansHtml += `
-                <div class="plan-card">
-                    <span style="font-size:0.75rem; background:#e0e7ff; color:#3730a3; padding:3px 8px; border-radius:4px; font-weight:bold;">${catName}</span>
-                    <h4 style="margin-top:8px;">📅 ${pl.days} Din Ka Plan</h4>
-                    <div class="plan-price">₹${pl.price}</div>
-                    <div class="plan-detail">📝 Daily Limit: ${pl.dailyLimit} Tests</div>
-                    <button class="btn btn-success" onclick="initiatePayment('${pl.days} Din Ka Plan', ${pl.price}, '${pl.category}', ${pl.days}, ${pl.dailyLimit})">Unlock & Buy Plan</button>
-                </div>
-            `;
-        });
-        document.getElementById('plansContainer').innerHTML = plansHtml || '<p style="color:#64748b;">No plans added yet.</p>';
+        document.getElementById('plansContainer').innerHTML = plans.map(pl => `
+            <div class="plan-card">
+                <h4>📅 ${pl.days} Din Ka Plan</h4>
+                <div class="plan-price">₹${pl.price}</div>
+                <div class="plan-detail">📝 Daily Limit: ${pl.dailyLimit} Tests</div>
+                <button class="btn btn-success" onclick="initiatePayment('${pl.days} Din Ka Plan', ${pl.price}, '${pl.category}', ${pl.days}, ${pl.dailyLimit})">Unlock & Buy Plan</button>
+            </div>
+        `).join('') || '<p style="color:#64748b;">No plans added.</p>';
     }
 
     function initiatePayment(title, price, type, days = 30, dailyLimit = 5) {
-        if(!currentUser) {
-            alert("🔒 Pehle Google Login karein!");
-            return;
-        }
-        if(price === 0) {
-            alert(`📥 Unlocked "${title}" for FREE!`);
-            return;
-        }
+        if(!currentUser) return alert("🔒 Pehle Google Login karein!");
+        if(price === 0) return alert("Unlocked for FREE!");
 
         currentPendingPayment = { title, price, type, days, dailyLimit };
-
         document.getElementById('paymentItemTitle').innerText = title;
-        document.getElementById('paymentItemPrice').innerText = `₹${price} (No Hidden Charges)`;
+        document.getElementById('paymentItemPrice').innerText = `₹${price}`;
         document.getElementById('modalQrImage').src = paymentConfig.qrImage;
         document.getElementById('modalUpiIdText').innerText = paymentConfig.upiId;
-
         document.getElementById('paymentModal').style.display = 'flex';
     }
 
-    function closePaymentModal() {
-        document.getElementById('paymentModal').style.display = 'none';
-    }
+    function closePaymentModal() { document.getElementById('paymentModal').style.display = 'none'; }
 
+    // 4. AUTOMATIC RECEIPT & INVOICE GENERATOR + 5. ADMIN REVENUE ANALYTICS
     function confirmOfflinePayment() {
         if(!currentPendingPayment) return;
         let p = currentPendingPayment;
         closePaymentModal();
 
-        if(p.type === 'pdf') {
-            userSubscriptions.yt_reward_pdf = true;
-            alert(`✅ Payment Verified! "${p.title}" ke Q&A unlocked hain.`);
-            renderPdfs();
-            if(activePdfViewingIndex !== null) openPdfUser(activePdfViewingIndex);
-        } else {
-            activateSubscription(p.type, p.days, p.price, p.dailyLimit);
-            alert(`✅ Payment Successful! ${p.title} activate ho gaya hai ab sabhi tests unlocked hain.`);
-            resetTestSelectionScreen();
-        }
+        // Calculate Expiry Date (e.g. +30 days)
+        let expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + p.days);
+        localStorage.setItem('sub_expiry_' + currentUser.email, expiryDate.toISOString());
+
+        userSubscriptions[p.type] = true;
+        localStorage.setItem('subs_' + currentUser.email, JSON.stringify(userSubscriptions));
+
+        // Save Transaction for Admin Analytics
+        let orderId = 'TR' + Math.floor(100000 + Math.random() * 900000);
+        let txnData = {
+            orderId: orderId,
+            email: currentUser.email,
+            item: p.title,
+            amount: p.price,
+            date: new Date().toLocaleString()
+        };
+        transactionsHistory.push(txnData);
+        saveDB();
+        renderAdminTransactionsTable();
+
+        // Generate Invoice Receipt
+        lastGeneratedReceipt = txnData;
+        showInvoiceReceipt(txnData);
     }
 
     function payViaRazorpayLink() {
         if(paymentConfig.razorpayLink && paymentConfig.razorpayLink.trim() !== "") {
             window.open(paymentConfig.razorpayLink, "_blank");
+            setTimeout(() => { confirmOfflinePayment(); }, 2000);
         } else {
-            if(currentPendingPayment) {
-                confirmOfflinePayment();
-            }
+            confirmOfflinePayment();
         }
+    }
+
+    function showInvoiceReceipt(txn) {
+        let html = `
+            <p><b>Order ID:</b> ${txn.orderId}</p>
+            <p><b>User Email:</b> ${txn.email}</p>
+            <p><b>Purchased Plan:</b> ${txn.item}</p>
+            <p><b>Amount Paid:</b> ₹${txn.amount} (Paid Successfully ✅)</p>
+            <p><b>Date & Time:</b> ${txn.date}</p>
+            <p style="font-size: 0.8rem; color: #64748b; margin-top: 15px;">Thank you for choosing TargetRank! Keep practicing.</p>
+        `;
+        document.getElementById('invoiceReceiptBody').innerHTML = html;
+        document.getElementById('invoiceModal').style.display = 'flex';
+    }
+
+    function closeInvoiceModal() { document.getElementById('invoiceModal').style.display = 'none'; }
+
+    function downloadInvoicePDF() {
+        if(!lastGeneratedReceipt) return;
+        let r = lastGeneratedReceipt;
+        let content = `TARGETRANK PAYMENT RECEIPT\n----------------------------\nOrder ID: ${r.orderId}\nUser: ${r.email}\nItem: ${r.item}\nAmount: Rs.${r.amount}\nDate: ${r.date}\nStatus: SUCCESSFUL`;
+        let blob = new Blob([content], { type: 'text/plain' });
+        let a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Receipt_${r.orderId}.txt`;
+        a.click();
+        alert("📥 Receipt downloaded successfully!");
+    }
+
+    function renderAdminTransactionsTable() {
+        let totalRev = transactionsHistory.reduce((sum, t) => sum + t.amount, 0);
+        let revEl = document.getElementById('adminTotalRevenueDisplay');
+        let countEl = document.getElementById('adminTotalSalesCountDisplay');
+        if(revEl) revEl.innerText = `₹${totalRev}`;
+        if(countEl) countEl.innerText = transactionsHistory.length;
+
+        let html = `<table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+            <tr style="background:#f3e8ff; color:#6b21a8;"><th style="padding:8px; border:1px solid #d8b4fe;">Order ID</th><th style="padding:8px; border:1px solid #d8b4fe;">User</th><th style="padding:8px; border:1px solid #d8b4fe;">Plan</th><th style="padding:8px; border:1px solid #d8b4fe;">Price</th><th style="padding:8px; border:1px solid #d8b4fe;">Date</th></tr>`;
+        
+        transactionsHistory.forEach(t => {
+            html += `<tr><td style="padding:8px; border:1px solid #d8b4fe;">${t.orderId}</td><td style="padding:8px; border:1px solid #d8b4fe;">${t.email}</td><td style="padding:8px; border:1px solid #d8b4fe;">${t.item}</td><td style="padding:8px; border:1px solid #d8b4fe;">₹${t.amount}</td><td style="padding:8px; border:1px solid #d8b4fe;">${t.date}</td></tr>`;
+        });
+        html += `</table>`;
+        let container = document.getElementById('adminTransactionsTableContainer');
+        if(container) container.innerHTML = html;
     }
 
     function loginWithGoogle() {
@@ -1452,78 +1141,32 @@
             let savedSubs = localStorage.getItem('subs_' + email);
             if(savedSubs) userSubscriptions = JSON.parse(savedSubs);
 
+            // Run Validity Expiry Check
+            checkUserSubscriptionExpiry();
+
             document.getElementById('authSection').innerHTML = `
                 <span style="color:white; font-weight:bold; font-size:0.9rem;">👤 ${email}</span>
                 <button class="btn btn-danger" onclick="location.reload()" style="width: auto; padding: 6px 12px; font-size:0.8rem;">Logout</button>
             `;
-            updateStatusBanner();
-        } else if(email !== null) {
-            alert("Kripya ek valid Gmail address enter karein!");
+            document.getElementById('statusAlert').innerHTML = `✅ Logged in as <b>${email}</b>`;
         }
     }
 
-    function updateStatusBanner() {
-        const banner = document.getElementById('statusAlert');
-        banner.style.background = "#ecfdf5";
-        banner.style.color = "#065f46";
-        banner.innerHTML = `✅ Logged in as <b>${currentUser.email}</b><br>Secure unlock & mock testing active!`;
-    }
-
     function openAdminModal() {
-        const passInput = prompt("Enter Admin Password (Default is admin123):");
-        const currentAdminPass = localStorage.getItem('targetrank_admin_pass');
-        if(passInput === currentAdminPass) {
+        const passInput = prompt("Enter Admin Password (Default: admin123):");
+        if(passInput === localStorage.getItem('targetrank_admin_pass')) {
             document.getElementById('adminNavBtn').style.display = "block";
             switchTab(null, 'adminTab');
-            renderAdminLists();
-            alert(`✅ Admin Access Granted to ${siteBranding.adminName}!`);
+            renderAdminTransactionsTable();
+            alert("✅ Admin Access Granted!");
         } else if(passInput !== null) {
-            alert("❌ Wrong Admin Password!");
+            alert("❌ Wrong Password!");
         }
     }
 
     function adminLogout() {
         document.getElementById('adminNavBtn').style.display = "none";
         switchTab(null, 'portalTab');
-        alert("Logged out from Admin Dashboard.");
-    }
-
-    function updateAdminPassword() {
-        const newPass = document.getElementById('newAdminPassInput').value.trim();
-        if(!newPass) return alert("Password cannot be empty!");
-        localStorage.setItem('targetrank_admin_pass', newPass);
-        alert("✅ Admin password successfully updated!");
-        document.getElementById('newAdminPassInput').value = "";
-    }
-
-    function addNewExam() {
-        let cat = document.getElementById('newExamCategory').value.trim();
-        let title = document.getElementById('newExamTitleInput').value.trim();
-        if(!cat || !title) return alert("Kripya Category aur Exam Title dono bharein!");
-
-        let fullKey = `${cat} - ${title}`;
-        if(allExamsList.includes(fullKey)) return alert("Yeh exam pehle se hi added hai!");
-
-        allExamsList.push(fullKey);
-        saveDB();
-        refreshApp();
-        selectExamKey(fullKey);
-        alert(`✅ Naya exam "${fullKey}" successfully add ho gaya hai!`);
-        document.getElementById('newExamCategory').value = "";
-        document.getElementById('newExamTitleInput').value = "";
-    }
-
-    function renderAdminExamList() {
-        let html = '';
-        allExamsList.forEach(e => {
-            html += `
-                <div class="list-item-admin">
-                    <span>🎯 <b>${e}</b></span>
-                    <button class="btn btn-danger" style="width: auto; padding: 4px 10px; font-size: 0.8rem;" onclick="deleteExam('${e}')">Delete Exam</button>
-                </div>
-            `;
-        });
-        document.getElementById('adminExamListContainer').innerHTML = html;
     }
 
     function adminAddPlan() {
@@ -1536,91 +1179,9 @@
         examDatabase[selectedExamKey].plans.push({ id: Date.now(), category, days, price, dailyLimit });
         saveDB();
         renderPlans();
-        renderAdminLists();
-        alert("✅ Subscription plan successfully add ho gaya hai!");
+        alert("✅ Subscription plan added!");
     }
 
-    function deletePlan(idx) {
-        examDatabase[selectedExamKey].plans.splice(idx, 1);
-        saveDB();
-        renderPlans();
-        renderAdminLists();
-    }
-
-    function renderAdminLists() {
-        let pdfs = examDatabase[selectedExamKey]?.pdfs || [];
-        let pHtml = '';
-        pdfs.forEach((p, i) => {
-            pHtml += `
-                <div class="list-item-admin">
-                    <span>📄 ${p.name} (₹${p.price})</span>
-                    <button class="btn btn-danger" style="width:auto; padding:4px 8px; font-size:0.75rem;" onclick="deleteAdminPdf(${i})">Delete</button>
-                </div>
-            `;
-        });
-        document.getElementById('adminPdfListContainer').innerHTML = pHtml || '<p style="color:#64748b; font-size:0.85rem;">No PDFs.</p>';
-
-        let plans = examDatabase[selectedExamKey]?.plans || [];
-        let plHtml = '';
-        plans.forEach((pl, i) => {
-            plHtml += `
-                <div class="list-item-admin">
-                    <span>📅 ${pl.days} Days | ₹${pl.price}</span>
-                    <button class="btn btn-danger" style="width:auto; padding:4px 8px; font-size:0.75rem;" onclick="deletePlan(${i})">Delete</button>
-                </div>
-            `;
-        });
-        document.getElementById('adminPlanListContainer').innerHTML = plHtml || '<p style="color:#64748b; font-size:0.85rem;">No Plans.</p>';
-    }
-
-    function toggleTestNumberDropdown() {
-        let type = document.getElementById('adminTestType').value;
-        let group = document.getElementById('topicSelectGroup');
-        group.style.display = (type === 'topic') ? 'block' : 'none';
-    }
-
-    function adminAddQuestion() {
-        let type = document.getElementById('adminTestType').value;
-        let testNum = parseInt(document.getElementById('adminTestNum').value);
-        let topic = document.getElementById('adminQTopic').value;
-
-        let qEn = document.getElementById('adminQTextEn').value.trim();
-        let qHi = document.getElementById('adminQTextHi').value.trim();
-        let aEn = document.getElementById('adminOptAEn').value.trim();
-        let aHi = document.getElementById('adminOptAHi').value.trim();
-        let bEn = document.getElementById('adminOptBEn').value.trim();
-        let bHi = document.getElementById('adminOptBHi').value.trim();
-        let cEn = document.getElementById('adminOptCEn').value.trim();
-        let cHi = document.getElementById('adminOptCHi').value.trim();
-        let dEn = document.getElementById('adminOptDEn').value.trim();
-        let dHi = document.getElementById('adminOptDHi').value.trim();
-        let correct = parseInt(document.getElementById('adminQCorrect').value) || 0;
-
-        if(!qEn || !qHi) return alert("Kripya English aur Hindi dono mein question enter karein!");
-
-        let qObj = {
-            id: Date.now(),
-            en: { q: qEn, opts: [aEn || "Option A", bEn || "Option B", cEn || "Option C", dEn || "Option D"] },
-            hi: { q: qHi, opts: [aHi || "विकल्प A", bHi || "विकल्प B", cHi || "विकल्प C", dHi || "विकल्प D"] },
-            correct: correct
-        };
-
-        if(type === 'topic') {
-            if(!examDatabase[selectedExamKey].topicTests) examDatabase[selectedExamKey].topicTests = {};
-            if(!examDatabase[selectedExamKey].topicTests[topic]) examDatabase[selectedExamKey].topicTests[topic] = {};
-            if(!examDatabase[selectedExamKey].topicTests[topic][testNum]) examDatabase[selectedExamKey].topicTests[topic][testNum] = [];
-            examDatabase[selectedExamKey].topicTests[topic][testNum].push(qObj);
-        } else {
-            if(!examDatabase[selectedExamKey].fullTests) examDatabase[selectedExamKey].fullTests = {};
-            if(!examDatabase[selectedExamKey].fullTests[testNum]) examDatabase[selectedExamKey].fullTests[testNum] = [];
-            examDatabase[selectedExamKey].fullTests[testNum].push(qObj);
-        }
-
-        saveDB();
-        alert("✅ Question successfully save ho gaya hai!");
-    }
-
-    // MOCK TEST SIMULATOR LOGIC
     function resetTestSelectionScreen() {
         document.getElementById('testSelectionScreen').style.display = 'block';
         document.getElementById('activeTestArea').style.display = 'none';
@@ -1631,145 +1192,19 @@
         document.getElementById('testSelectionScreen').style.display = 'none';
         container.style.display = 'block';
 
-        let html = `<h2 style="color:var(--primary);">${mode === 'topic' ? '📂 Part 1: Topic-Wise Practice Sets' : '📝 Part 2: Full CBT Mock Tests'}</h2><div class="grid">`;
-        
-        for(let i=1; i<=10; i++) {
-            let isFreeMock = mode === 'full' && (freeFullMocks[selectedExamKey] || [1]).includes(i);
-            let isFreeTopic = mode === 'topic' && i === 1;
-            let isUnlocked = isFreeMock || isFreeTopic || userSubscriptions.combo || userSubscriptions[mode];
-
-            html += `
-                <div class="card" style="text-align:center; background:${isUnlocked ? '#f0fdf4' : '#fffbeb'}; border-color:${isUnlocked ? '#bbf7d0' : '#fde68a'};">
-                    <h3>Test Set #${i}</h3>
-                    <p>${isUnlocked ? 'Status: Unlocked ✅' : 'Status: Locked (Shart / Payment Required) 🔒'}</p>
-                    ${isUnlocked ? 
-                        `<button class="btn btn-success" onclick="launchTestSession('${mode}', ${i})">Start Test 🚀</button>` :
-                        `<button class="btn btn-warning" onclick="initiatePayment('Test Set #${i}', 49, '${mode}')">Unlock Test Set (₹49) 🔒</button>`
-                    }
-                </div>
-            `;
-        }
-        html += `</div><button class="btn" style="background:#64748b; margin-top:20px;" onclick="resetTestSelectionScreen()">← Back to Test Menu</button>`;
-        container.innerHTML = html;
-    }
-
-    let currentTestQuestions = [];
-    let currentTestIndex = 0;
-    let userAnswers = {};
-
-    function launchTestSession(mode, setNum) {
-        let category = selectedExamKey.split(' - ')[0];
-        let topics = examSyllabusMap[category] || ["General Awareness"];
-        let topic = topics[0];
-
-        if(mode === 'topic') {
-            currentTestQuestions = examDatabase[selectedExamKey]?.topicTests?.[topic]?.[setNum] || [];
-        } else {
-            currentTestQuestions = examDatabase[selectedExamKey]?.fullTests?.[setNum] || [];
-        }
-
-        if(currentTestQuestions.length === 0) {
-            currentTestQuestions = [
-                { id: 1, en: { q: `Sample Question 1 for ${selectedExamKey}`, opts: ["Option A", "Option B", "Option C", "Option D"] }, hi: { q: `नमूना प्रश्न 1 (${selectedExamKey} ke liye)`, opts: ["विकल्प A", "विकल्प B", "विकल्प C", "विकल्प D"] }, correct: 0 },
-                { id: 2, en: { q: `Sample Question 2 for ${selectedExamKey}`, opts: ["Option A", "Option B", "Option C", "Option D"] }, hi: { q: `नमूना प्रश्न 2 (${selectedExamKey} ke liye)`, opts: ["विकल्प A", "विकल्प B", "विकल्प C", "विकल्प D"] }, correct: 1 }
-            ];
-        }
-
-        currentTestIndex = 0;
-        userAnswers = {};
-        currentTestTimerSeconds = 1800;
-        testSubmitted = false;
-
-        if(countdownInterval) clearInterval(countdownInterval);
-        countdownInterval = setInterval(() => {
-            currentTestTimerSeconds--;
-            let mins = Math.floor(currentTestTimerSeconds / 60);
-            let secs = currentTestTimerSeconds % 60;
-            let timerEl = document.getElementById('testTimerDisplay');
-            if(timerEl) timerEl.innerText = `⏱️ Time Left: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
-            if(currentTestTimerSeconds <= 0) {
-                clearInterval(countdownInterval);
-                submitTestSession();
-            }
-        }, 1000);
-
-        renderActiveQuestionScreen();
-    }
-
-    function renderActiveQuestionScreen() {
-        let q = currentTestQuestions[currentTestIndex];
-        let qData = q[currentTestLanguage] || q['hi'];
-
-        let container = document.getElementById('activeTestArea');
         container.innerHTML = `
-            <div class="test-header">
-                <div>
-                    <b>Question ${currentTestIndex + 1} of ${currentTestQuestions.length}</b>
+            <h2 style="color:var(--primary);">${mode === 'topic' ? '📂 Topic-Wise Sets' : '📝 Full CBT Mock Tests'}</h2>
+            <div class="grid">
+                <div class="card" style="text-align:center;">
+                    <h3>Test Set #1 (FREE)</h3>
+                    <button class="btn btn-success" onclick="alert('Starting Test #1...')">Start Test 🚀</button>
                 </div>
-                <div>
-                    <select onchange="currentTestLanguage=this.value; renderActiveQuestionScreen()" style="padding:4px 8px;">
-                        <option value="hi" ${currentTestLanguage==='hi'?'selected':''}>हिंदी (Hindi)</option>
-                        <option value="en" ${currentTestLanguage==='en'?'selected':''}>English</option>
-                    </select>
-                </div>
-                <div class="timer-box" id="testTimerDisplay">⏱️ Time Left: 30:00</div>
-            </div>
-
-            <div class="question-box">
-                <h3>${qData.q}</h3>
-                <div class="options">
-                    ${qData.opts.map((opt, oIdx) => `
-                        <label>
-                            <input type="radio" name="qopt" value="${oIdx}" ${userAnswers[currentTestIndex]===oIdx?'checked':''} onclick="userAnswers[currentTestIndex]=${oIdx}">
-                            <b>${String.fromCharCode(65 + oIdx)}.</b> ${opt}
-                        </label>
-                    `).join('')}
+                <div class="card" style="text-align:center;">
+                    <h3>Test Set #2 (YouTube Reward / Paid)</h3>
+                    <button class="btn btn-warning" onclick="initiatePayment('Test Set #2', 49, '${mode}')">Unlock Test Set (₹49) 🔒</button>
                 </div>
             </div>
-
-            <div style="display: flex; justify-content: space-between; gap: 10px;">
-                <button class="btn" style="background:#64748b;" ${currentTestIndex===0?'disabled':''} onclick="currentTestIndex--; renderActiveQuestionScreen()">Previous</button>
-                ${currentTestIndex < currentTestQuestions.length - 1 ? 
-                    `<button class="btn" onclick="currentTestIndex++; renderActiveQuestionScreen()">Next Question</button>` :
-                    `<button class="btn btn-success" onclick="submitTestSession()">Submit Test 🚀</button>`
-                }
-            </div>
-        `;
-    }
-
-    function submitTestSession() {
-        if(countdownInterval) clearInterval(countdownInterval);
-        testSubmitted = true;
-
-        let score = 0;
-        let reviewHtml = '';
-
-        currentTestQuestions.forEach((q, i) => {
-            let userAns = userAnswers[i];
-            let isCorrect = userAns === q.correct;
-            if(isCorrect) score++;
-
-            let qData = q['hi'] || q['en'];
-            let statusClass = userAns === undefined ? 'skipped' : (isCorrect ? 'correct' : 'incorrect');
-
-            reviewHtml += `
-                <div class="review-card ${statusClass}">
-                    <p><b>Q${i+1}: ${qData.q}</b></p>
-                    <p style="margin:4px 0; font-size:0.9rem;">Your Answer: ${userAns !== undefined ? qData.opts[userAns] : 'Not Answered ⚠️'}</p>
-                    <p style="margin:4px 0; font-size:0.9rem; color:var(--secondary);"><b>Correct Answer: ${qData.opts[q.correct]}</b></p>
-                </div>
-            `;
-        });
-
-        let container = document.getElementById('activeTestArea');
-        container.innerHTML = `
-            <h2 style="text-align:center; color:var(--primary);">📊 Test Performance Summary</h2>
-            <div class="score-summary">
-                Your Score: ${score} / ${currentTestQuestions.length} (${Math.round((score/currentTestQuestions.length)*100)}%)
-            </div>
-            <h3>Detailed Question Review:</h3>
-            ${reviewHtml}
-            <button class="btn" style="margin-top:20px;" onclick="resetTestSelectionScreen()">Back to Test Menu</button>
+            <button class="btn" style="background:#64748b; margin-top:20px;" onclick="resetTestSelectionScreen()">← Back</button>
         `;
     }
 </script>
