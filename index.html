@@ -1519,6 +1519,8 @@
       let cloudAuth = null;
       let cloudSaveTimer = null;
       let currentUser = null;
+      // Admin password is checked on every Admin entry; cleared on refresh/logout.
+      let adminAuthenticated = false;
       // Per-exam subscriptions map: { [examKey]: { combo: bool, topic: bool, full: bool, pdfs: { [pdfId]: bool } } }
       let userSubscriptionsByExam =
         JSON.parse(localStorage.getItem("targetrank_user_subs")) || {};
@@ -1714,7 +1716,7 @@
           cloudAuth = firebase.auth();
           firebaseReady = true;
           cloudAuth.onAuthStateChanged(async (user) => {
-            currentUser = user ? { uid: user.uid, email: user.email, displayName: user.displayName } : null;
+            currentUser = user ? { uid: user.uid, email: user.email, displayName: user.displayName, emailVerified: user.emailVerified } : null;
             try {
               // Cloud app data is read only after Firebase confirms a signed-in user.
               if (currentUser) await loadCloudAppState();
@@ -1905,6 +1907,10 @@
       }
 
       function switchTab(tabId, btnElement) {
+        if (tabId === "adminTab" && !adminAuthenticated) {
+          alert("Admin Dashboard kholne se pehle Google Email aur Admin Password verify karna zaroori hai.");
+          return;
+        }
         document
           .querySelectorAll(".tab-content")
           .forEach((el) => el.classList.remove("active"));
@@ -1938,6 +1944,7 @@
       }
 
       async function logoutUser() {
+        adminAuthenticated = false;
         if (cloudAuth) await cloudAuth.signOut();
         currentUser = null;
         userSubscriptionsByExam = {};
@@ -1949,34 +1956,55 @@
         const auth = document.getElementById("authSection");
         if (!auth) return;
         if (currentUser) {
-          const safeName = currentUser.displayName || currentUser.email || "Student";
-          auth.innerHTML = `<span style="font-weight:bold;color:white;">👤 ${safeName}</span>
+          const email = currentUser.email || "Google account";
+          auth.innerHTML = `<span id="signedInEmail" style="font-weight:bold;color:white;"></span>
             <button class="btn btn-warning" onclick="logoutUser()" style="width:auto;padding:6px 12px;">Logout</button>`;
+          const emailLabel = document.getElementById("signedInEmail");
+          if (emailLabel) emailLabel.textContent = "👤 " + email;
           const status = document.getElementById("statusAlert");
-          status.innerHTML = `✅ Welcome <b>${safeName}</b>! ${selectedExamKey} ka content access kar sakte hain.`;
-          status.style.background = "#ecfdf5";
-          status.style.borderColor = "#a7f3d0";
-          status.style.color = "#065f46";
+          if (status) {
+            status.textContent = "Welcome " + email + "! " + selectedExamKey + " ka content access kar sakte hain.";
+            status.style.background = "#ecfdf5";
+            status.style.borderColor = "#a7f3d0";
+            status.style.color = "#065f46";
+          }
         } else {
           auth.innerHTML = `<button class="btn btn-google" onclick="loginWithGoogle()" style="width:auto;padding:8px 16px;">Google Login</button>`;
           const status = document.getElementById("statusAlert");
-          status.innerHTML = `🔒 Content access ke liye <b>Google Login</b> karein.`;
-          status.style.background = "#fef3c7";
-          status.style.borderColor = "#fde68a";
-          status.style.color = "#92400e";
+          if (status) {
+            status.textContent = "Content access ke liye Google Login karein.";
+            status.style.background = "#fef3c7";
+            status.style.borderColor = "#fde68a";
+            status.style.color = "#92400e";
+          }
         }
       }
 
       function openAdminModal() {
-        if (!currentUser || !ADMIN_EMAILS.map(x => x.toLowerCase()).includes((currentUser.email || "").toLowerCase())) {
-          alert("Admin Dashboard sirf ADMIN_EMAILS mein listed Google accounts ke liye hai. Pehle authorized admin account se Google Login karein.");
+        const email = (currentUser && currentUser.email ? currentUser.email : "").trim().toLowerCase();
+        const allowed = ADMIN_EMAILS.map((x) => x.trim().toLowerCase()).includes(email);
+        if (!currentUser || !allowed || !currentUser.email || currentUser.emailVerified !== true) {
+          adminAuthenticated = false;
+          alert("Ram Admin sirf " + ADMIN_EMAILS.join(", ") + " ke verified Google account se khulega. Pehle sahi Google account se Login karein.");
           return;
         }
+
+        const savedPassword = localStorage.getItem("targetrank_admin_pass") || "admin123";
+        const enteredPassword = window.prompt("Google Email verified: " + currentUser.email + "\nAdmin Password enter karein:");
+        if (enteredPassword === null) return;
+        if (enteredPassword !== savedPassword) {
+          adminAuthenticated = false;
+          alert("Galat Admin Password. Dashboard nahi khulega.");
+          return;
+        }
+
+        adminAuthenticated = true;
         switchTab("adminTab");
         refreshApp();
       }
 
       function adminLogout() {
+        adminAuthenticated = false;
         switchTab("portalTab", document.querySelector(".nav-tabs button"));
         refreshApp();
         alert("Logged out from Admin Center!");
@@ -2486,12 +2514,17 @@
       }
 
       function updateAdminPassword() {
+        const email = (currentUser && currentUser.email ? currentUser.email : "").trim().toLowerCase();
+        const allowed = ADMIN_EMAILS.map((x) => x.trim().toLowerCase()).includes(email);
+        if (!adminAuthenticated || !currentUser || !allowed) {
+          alert("Password update ke liye authorized Google Email aur Admin Login zaroori hai.");
+          return;
+        }
         const input = document.getElementById("newAdminPassInput");
         if (!input) {
           alert("Password field nahi mila. Page refresh karke dobara try karein.");
           return;
         }
-
         const pass = input.value.trim();
         if (!pass) {
           alert("Kripya naya Admin Password enter karein.");
@@ -2503,14 +2536,13 @@
           input.focus();
           return;
         }
-
         try {
           localStorage.setItem("targetrank_admin_pass", pass);
           if (localStorage.getItem("targetrank_admin_pass") !== pass) {
             throw new Error("Browser storage mein password save nahi hua.");
           }
           input.value = "";
-          alert("Admin Password Successfully Updated!");
+          alert("Admin Password Successfully Updated! Ab se Admin Login mein naya Password hi chalega.");
         } catch (error) {
           console.error("Admin password update failed:", error);
           alert("Password update nahi hua. Browser storage allow karke dobara try karein.");
