@@ -535,7 +535,7 @@
             onclick="loginWithGoogle()"
             style="width: auto; padding: 8px 16px"
           >
-            Google Login
+            Choose Google Account / Login
           </button>
         </div>
       </div>
@@ -1931,15 +1931,24 @@
 
       async function loginWithGoogle() {
         if (!firebaseReady || !cloudAuth) {
-          alert("Pehle Firebase config set karein. Setup guide dekhein.");
+          alert("Firebase connection ready nahi hai. Firebase config aur Authorized domains check karein.");
           return;
         }
         try {
+          // Har login par Google ka account chooser zabardasti kholein.
+          // Isse browser mein pehle se logged-in Gmail apne aap select nahi hoga.
           const provider = new firebase.auth.GoogleAuthProvider();
+          provider.setCustomParameters({ prompt: "select_account" });
           await cloudAuth.signInWithPopup(provider);
         } catch (err) {
-          console.error(err);
-          alert("Google Login failed: " + (err.message || "Unknown error"));
+          console.error("Google sign-in error:", err);
+          if (err.code === "auth/popup-blocked") {
+            alert("Chrome ne Google Login popup block kar diya. Address bar ke popup icon se is site ke popups Allow karein, phir dobara Login karein.");
+          } else if (err.code === "auth/unauthorized-domain") {
+            alert("Ye website Firebase mein Authorized domains mein add nahi hai. Firebase Console > Authentication > Settings > Authorized domains mein apna GitHub Pages domain add karein.");
+          } else {
+            alert("Google Login nahi hua: " + (err.message || err.code || "Unknown error"));
+          }
         }
       }
 
@@ -1970,7 +1979,7 @@
             status.style.color = "#065f46";
           }
         } else {
-          auth.innerHTML = `<button class="btn btn-google" onclick="loginWithGoogle()" style="width:auto;padding:8px 16px;">Google Login</button>`;
+          auth.innerHTML = `<button class="btn btn-google" onclick="loginWithGoogle()" style="width:auto;padding:8px 16px;">Choose Google Account / Login</button>`;
           const status = document.getElementById("statusAlert");
           if (status) {
             status.textContent = "Content access ke liye Google Login karein.";
@@ -1982,12 +1991,18 @@
       }
 
       async function switchGoogleAccount() {
+        if (!firebaseReady || !cloudAuth) {
+          alert("Firebase connection ready nahi hai. Page refresh karke dobara koshish karein.");
+          return;
+        }
         try {
           adminAuthenticated = false;
+          // Pehle purana Firebase session band karein, phir forced account chooser ke saath login.
           await cloudAuth.signOut();
           await loginWithGoogle();
         } catch (err) {
-          alert("Google account change nahi ho paya: " + (err.message || "Unknown error"));
+          console.error("Google account switch error:", err);
+          alert("Google account change nahi ho paya: " + (err.message || err.code || "Unknown error"));
         }
       }
 
