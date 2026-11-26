@@ -7,6 +7,10 @@
       TargetRank - Complete Educational Portal & Admin Dashboard
     </title>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- Firebase compat SDKs: replace firebaseConfig values before deployment -->
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
     <style>
       :root {
         --primary: #4f46e5;
@@ -37,6 +41,7 @@
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
+        gap: 10px;
       }
       header h1 {
         margin: 0;
@@ -156,16 +161,17 @@
         justify-content: center;
         background: #312e81;
         padding: 10px;
-        gap: 15px;
+        gap: 12px;
         flex-wrap: wrap;
+        align-items: center;
       }
       .nav-tabs button,
       .nav-item .nav-btn {
         background: transparent;
         border: none;
         color: #cbd5e1;
-        padding: 10px 20px;
-        font-size: 1rem;
+        padding: 10px 18px;
+        font-size: 0.95rem;
         cursor: pointer;
         font-weight: bold;
         border-radius: 5px;
@@ -180,7 +186,7 @@
 
       .container {
         max-width: 1200px;
-        margin: 30px auto;
+        margin: 25px auto;
         padding: 0 20px;
       }
       .tab-content {
@@ -192,7 +198,7 @@
 
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         gap: 20px;
       }
       .card {
@@ -271,14 +277,14 @@
         border: 2px solid var(--primary);
         border-radius: 10px;
         padding: 18px;
-        width: 250px;
+        width: 260px;
         text-align: center;
         background: #fff;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
       }
       .plan-card h4 {
         margin: 0 0 8px 0;
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         color: #1e293b;
       }
       .plan-price {
@@ -461,16 +467,39 @@
         border-radius: 6px;
         margin-bottom: 8px;
         gap: 10px;
+        flex-wrap: wrap;
       }
-      .live-exam-badge {
+      .live-exam-switcher-bar {
         background: #e0e7ff;
         color: #3730a3;
-        padding: 8px 15px;
-        border-radius: 6px;
+        padding: 12px 16px;
+        border-radius: 8px;
         font-weight: bold;
         font-size: 0.95rem;
-        margin-bottom: 15px;
+        margin-bottom: 20px;
         border-left: 5px solid var(--primary);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .live-exam-switcher-bar select {
+        width: auto;
+        min-width: 240px;
+        font-weight: bold;
+        background: #ffffff;
+        color: #1e293b;
+      }
+      .unlocked-pill {
+        display: inline-block;
+        background: #dcfce7;
+        color: #166534;
+        font-size: 0.8rem;
+        font-weight: bold;
+        padding: 4px 10px;
+        border-radius: 999px;
+        margin-bottom: 10px;
       }
     </style>
   </head>
@@ -486,6 +515,7 @@
           id="headerYouTubeLiveBtn"
           class="youtube-live-btn"
           target="_blank"
+          rel="noopener noreferrer"
           >🔴 YouTube Live</a
         >
         <button class="help-trigger-btn" onclick="openHelpModal()">
@@ -670,7 +700,7 @@
             border-radius: 8px;
             margin-bottom: 15px;
             font-size: 0.9rem;
-            color: #475569;
+            color: #334155;
             text-align: left;
             max-height: 350px;
             overflow-y: auto;
@@ -679,7 +709,17 @@
           <p style="color: var(--secondary); font-weight: bold">
             Status: Fully Unlocked ✅
           </p>
-          <div id="pdfContentQuestionsList"></div>
+          <div
+            id="pdfContentQuestionsList"
+            style="white-space: pre-wrap; margin-bottom: 14px"
+          ></div>
+          <button
+            class="btn"
+            style="width: auto; padding: 8px 14px; background: #0284c7"
+            onclick="downloadPdfSummaryTxt()"
+          >
+            ⬇️ Download Notes (.TXT)
+          </button>
         </div>
 
         <button
@@ -734,36 +774,24 @@
 
         <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 10px">
           <div class="form-group">
-            <label>Option A (En/Hi)</label
-            ><input type="text" id="editOptAEn" /><input
-              type="text"
-              id="editOptAHi"
-              style="margin-top: 5px"
-            />
+            <label>Option A (En/Hi)</label>
+            <input type="text" id="editOptAEn" />
+            <input type="text" id="editOptAHi" style="margin-top: 5px" />
           </div>
           <div class="form-group">
-            <label>Option B (En/Hi)</label
-            ><input type="text" id="editOptBEn" /><input
-              type="text"
-              id="editOptBHi"
-              style="margin-top: 5px"
-            />
+            <label>Option B (En/Hi)</label>
+            <input type="text" id="editOptBEn" />
+            <input type="text" id="editOptBHi" style="margin-top: 5px" />
           </div>
           <div class="form-group">
-            <label>Option C (En/Hi)</label
-            ><input type="text" id="editOptCEn" /><input
-              type="text"
-              id="editOptCHi"
-              style="margin-top: 5px"
-            />
+            <label>Option C (En/Hi)</label>
+            <input type="text" id="editOptCEn" />
+            <input type="text" id="editOptCHi" style="margin-top: 5px" />
           </div>
           <div class="form-group">
-            <label>Option D (En/Hi)</label
-            ><input type="text" id="editOptDEn" /><input
-              type="text"
-              id="editOptDHi"
-              style="margin-top: 5px"
-            />
+            <label>Option D (En/Hi)</label>
+            <input type="text" id="editOptDEn" />
+            <input type="text" id="editOptDHi" style="margin-top: 5px" />
           </div>
         </div>
 
@@ -825,8 +853,17 @@
         dwara set kiye gaye free sets bina unlock ke dikhenge!
       </div>
 
-      <div class="live-exam-badge" id="userActiveExamBanner">
-        📖 Active Selected Exam: Loading...
+      <div class="live-exam-switcher-bar">
+        <div id="userActiveExamBanner">📖 Active Selected Exam: Loading...</div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+          <label for="userQuickExamSelect" style="margin: 0; font-size: 0.9rem"
+            >Exam Badlein:</label
+          >
+          <select
+            id="userQuickExamSelect"
+            onchange="onUserExamDropdownChange(this.value)"
+          ></select>
+        </div>
       </div>
 
       <div id="portalTab" class="tab-content active">
@@ -864,14 +901,23 @@
               style="
                 color: var(--primary);
                 text-align: center;
-                margin-bottom: 20px;
+                margin-bottom: 10px;
               "
             >
               CHOOSE TEST FORMAT
             </h2>
+            <p
+              id="testExamSubtitle"
+              style="
+                text-align: center;
+                color: #475569;
+                font-weight: 600;
+                margin-bottom: 20px;
+              "
+            ></p>
             <div class="test-mode-selector">
               <div class="mode-card" onclick="startTestMode('topic')">
-                <h3>📂 Part 1: Topic-Wise Practice (10 Questions)</h3>
+                <h3>📂 Part 1: Topic-Wise Practice (10 Sets)</h3>
                 <p>
                   Subject-wise sets. Free & Paid fully configurable by Admin.
                 </p>
@@ -993,7 +1039,7 @@
           </h2>
           <p style="font-size: 0.9rem; color: #047857">
             Yahan se aap control kar sakte hain ki user ke liye PDF download /
-            Mock tests **Fully Free** hon ya **Paid / YouTube Subscribe Shart**
+            Mock tests <b>Fully Free</b> hon ya <b>Paid / YouTube Subscribe Shart</b>
             ke sath automatic unlock hon.
           </p>
           <div class="form-group">
@@ -1087,8 +1133,10 @@
         </div>
 
         <div class="card" style="background: #e0e7ff; border-color: #818cf8">
-          <label style="font-size: 1.1rem; color: #3730a3; margin-bottom: 8px"
-            >🎯 Select Exam to Manage:</label
+          <label
+            for="adminGlobalExamSelect"
+            style="font-size: 1.1rem; color: #3730a3; margin-bottom: 8px"
+            >🎯 Select Exam to Manage (Sabhi Tabs & Tools Automatically Sync Honge):</label
           >
           <select
             id="adminGlobalExamSelect"
@@ -1112,7 +1160,10 @@
             "
           >
             <h2 style="color: #1e40af; border-color: #1e40af">
-              ⚙️ Mock Test 1 to 30 Free / Paid Control
+              ⚙️ Mock Test 1 to 30 Free / Paid Control (<span
+                id="mockControlExamLabel"
+              ></span
+              >)
             </h2>
             <div
               id="adminFullMockStatusList"
@@ -1175,14 +1226,18 @@
             >
               <div class="form-group" style="margin: 0">
                 <label>Category</label>
-                <input type="text" id="newExamCategory" placeholder="Railway" />
+                <input
+                  type="text"
+                  id="newExamCategory"
+                  placeholder="e.g. UP Police / SSC / Railway"
+                />
               </div>
               <div class="form-group" style="margin: 0">
                 <label>Exam Title</label>
                 <input
                   type="text"
                   id="newExamTitleInput"
-                  placeholder="RRB NTPC CBT 2"
+                  placeholder="e.g. UP Police SI / SSC GD"
                 />
               </div>
               <button
@@ -1215,7 +1270,9 @@
           </div>
 
           <div class="card">
-            <h2>2. Subscription Plans</h2>
+            <h2>
+              2. Subscription Plans (<span id="planExamLabel"></span>)
+            </h2>
             <div class="form-group">
               <label>Plan Category</label>
               <select id="adminPlanCategory">
@@ -1242,7 +1299,9 @@
           </div>
 
           <div class="card">
-            <h2>3. Upload PDFs with Q&A & Shart</h2>
+            <h2>
+              3. Upload PDFs with Q&A & Shart (<span id="pdfExamLabel"></span>)
+            </h2>
             <div class="form-group">
               <label>PDF Title & Price (₹)</label>
               <input
@@ -1254,6 +1313,8 @@
                 type="number"
                 id="adminPdfPrice"
                 placeholder="29"
+                min="0"
+                value="29"
                 style="margin-top: 8px"
               />
             </div>
@@ -1289,7 +1350,10 @@
           </div>
 
           <div class="card" style="grid-column: 1 / -1">
-            <h2>4. Universal Question Manager (Add, View, Edit & Delete)</h2>
+            <h2>
+              4. Universal Question Manager (Add, View, Edit & Delete) —
+              <span id="questionExamLabel"></span>
+            </h2>
             <div
               class="grid"
               style="grid-template-columns: 1fr 1fr 1fr; gap: 15px"
@@ -1300,7 +1364,7 @@
                   id="adminTestType"
                   onchange="toggleTestNumberDropdown()"
                 >
-                  <option value="topic">Topic-Wise (10 Qs)</option>
+                  <option value="topic">Topic-Wise (10 Sets)</option>
                   <option value="full">Full Mock (1 to 30)</option>
                 </select>
               </div>
@@ -1312,7 +1376,7 @@
                 ></select>
               </div>
               <div class="form-group">
-                <label>Test Number (1 to 30)</label>
+                <label>Test Number</label>
                 <select
                   id="adminTestNum"
                   onchange="renderAdminQuestionList()"
@@ -1436,8 +1500,28 @@
     </div>
 
     <script>
+      // ================= FIREBASE CONFIGURATION =================
+      // Firebase Console > Project settings > Your apps > Web app.
+      // Firebase web config is public; protect data with the Firestore rules
+      // supplied in the setup guide. Never put service-account secrets here.
+      const firebaseConfig = {
+        apiKey: "AIzaSyCK1WT0DL4wvRSl1f1bl3yUr1Dfw4FSDcM",
+        authDomain: "targetrank.firebaseapp.com",
+        projectId: "targetrank",
+        storageBucket: "targetrank.firebasestorage.app",
+        messagingSenderId: "888097975680",
+        appId: "1:888097975680:web:47355e80691b9bd6f52565"
+      };
+      // Add the Google account(s) allowed to open the Admin Dashboard.
+      const ADMIN_EMAILS = ["769gopi@gmail.com"];
+      let firebaseReady = false;
+      let cloudDb = null;
+      let cloudAuth = null;
+      let cloudSaveTimer = null;
       let currentUser = null;
-      let userSubscriptions = {};
+      // Per-exam subscriptions map: { [examKey]: { combo: bool, topic: bool, full: bool, pdfs: { [pdfId]: bool } } }
+      let userSubscriptionsByExam =
+        JSON.parse(localStorage.getItem("targetrank_user_subs")) || {};
       let selectedExamKey = "";
       let currentPendingPayment = null;
       let activePdfViewingIndex = null;
@@ -1507,6 +1591,8 @@
         localStorage.getItem("targetrank_free_mocks"),
       ) || {
         "Railway - RRB NTPC CBT 1": [1],
+        "Railway - RRB Group D": [1],
+        "UP Police - UP Police Constable": [1],
       };
 
       const examSyllabusMap = {
@@ -1541,12 +1627,29 @@
               name: "RRB NTPC Complete Study Notes PDF",
               price: 49,
               qna: "Q1: First Railway in India? Ans: 1853\nQ2: HQ of Railway? Ans: New Delhi",
-              fileData: "",
+              fileName: "",
             },
           ],
           plans: [
             { id: 1, category: "topic", days: 7, price: 29 },
             { id: 2, category: "combo", days: 30, price: 149 },
+          ],
+          topicTests: {},
+          fullTests: {},
+        },
+        "UP Police - UP Police Constable": {
+          pdfs: [
+            {
+              id: 101,
+              name: "UP Police Constable GK & UP Special Notes",
+              price: 39,
+              qna: "Q1: UP Police motto? Ans: Suraksha Aapki Sankalp Hamara\nQ2: UP State Animal? Ans: Barasingha",
+              fileName: "",
+            },
+          ],
+          plans: [
+            { id: 101, category: "topic", days: 15, price: 49 },
+            { id: 102, category: "combo", days: 30, price: 129 },
           ],
           topicTests: {},
           fullTests: {},
@@ -1557,18 +1660,89 @@
         JSON.parse(localStorage.getItem("targetrank_db")) ||
         defaultExamDatabase;
 
-      window.addEventListener("DOMContentLoaded", () => {
+      function getExamSubRecord(examKey) {
+        if (!userSubscriptionsByExam[examKey]) {
+          userSubscriptionsByExam[examKey] = {
+            combo: false,
+            topic: false,
+            full: false,
+            pdfs: {},
+          };
+        }
+        if (!userSubscriptionsByExam[examKey].pdfs) {
+          userSubscriptionsByExam[examKey].pdfs = {};
+        }
+        return userSubscriptionsByExam[examKey];
+      }
+
+      function saveUserSubscriptions() {
+        // Local cache only. Verified entitlements must be written by a trusted
+        // Cloud Function after Razorpay webhook/signature verification.
+        localStorage.setItem("targetrank_user_subs", JSON.stringify(userSubscriptionsByExam));
+      }
+
+      function getExamCategory(examKey) {
+        if (!examKey || !examKey.includes("-")) return "General";
+        return examKey.split("-")[0].trim();
+      }
+
+      function getTopicsForExam(examKey) {
+        const cat = getExamCategory(examKey);
+        if (topicListMap[cat]) return topicListMap[cat];
+        return ["General Awareness", "Mathematics", "Reasoning"];
+      }
+
+      function getSyllabusForExam(examKey) {
+        const cat = getExamCategory(examKey);
+        if (examSyllabusMap[cat]) return examSyllabusMap[cat];
+        return [
+          `General Awareness (${examKey})`,
+          "Mathematics & Quantitative Aptitude",
+          "General Intelligence & Reasoning",
+          "General Knowledge & Current Affairs",
+        ];
+      }
+
+      window.addEventListener("DOMContentLoaded", async () => {
+        try {
+          if (firebaseConfig.apiKey.startsWith("PASTE_") ||
+              firebaseConfig.projectId === "YOUR_PROJECT_ID") {
+            throw new Error("Firebase config abhi set nahi hua. Setup guide follow karein.");
+          }
+          firebase.initializeApp(firebaseConfig);
+          cloudDb = firebase.firestore();
+          cloudAuth = firebase.auth();
+          firebaseReady = true;
+          cloudAuth.onAuthStateChanged(async (user) => {
+            currentUser = user ? { uid: user.uid, email: user.email, displayName: user.displayName } : null;
+            try {
+              // Cloud app data is read only after Firebase confirms a signed-in user.
+              if (currentUser) await loadCloudAppState();
+              await loadCurrentUserSubscriptions();
+            } catch (cloudErr) {
+              console.warn("Cloud data load:", cloudErr.message);
+              const banner = document.getElementById("statusAlert");
+              if (banner) banner.innerText = "Cloud data load nahi hua. Firestore Rules aur login check karein.";
+            }
+            renderAuthUI();
+            refreshApp();
+          });
+        } catch (err) {
+          console.warn("Firebase initialization:", err.message);
+          const banner = document.getElementById("statusAlert");
+          if (banner) banner.innerHTML = "⚠️ Firebase setup pending: firebaseConfig mein apne project ki details bharein. Abhi local preview mode chal raha hai.";
+        }
+
         applyBrandingToUI();
         applyPaymentConfigToUI();
         applyYouTubeOfferUI();
         applyGateModeUI();
         renderHelpModalContent();
-        if (
-          allExamsList.length > 0 &&
-          !allExamsList.includes(selectedExamKey)
-        ) {
+
+        if (allExamsList.length > 0 && !allExamsList.includes(selectedExamKey)) {
           selectedExamKey = allExamsList[0];
         }
+        if (selectedExamKey) ensureExamData(selectedExamKey);
         refreshApp();
         renderFlashNewsTicker();
       });
@@ -1651,8 +1825,27 @@
         document.getElementById("adminFlashListContainer").innerHTML = html;
       }
 
+      function syncExamContextLabels() {
+        const label = selectedExamKey || "None";
+        const mEl = document.getElementById("mockControlExamLabel");
+        const pEl = document.getElementById("planExamLabel");
+        const pdfEl = document.getElementById("pdfExamLabel");
+        const qEl = document.getElementById("questionExamLabel");
+        const tSub = document.getElementById("testExamSubtitle");
+        if (mEl) mEl.innerText = label;
+        if (pEl) pEl.innerText = label;
+        if (pdfEl) pdfEl.innerText = label;
+        if (qEl) qEl.innerText = label;
+        if (tSub) tSub.innerText = `Current Exam: ${label}`;
+      }
+
       function refreshApp() {
+        if (selectedExamKey) {
+          ensureExamData(selectedExamKey);
+        }
+        syncExamContextLabels();
         renderNavigationTabs();
+        renderUserExamDropdown();
         renderAdminExamDropdown();
         renderAdminExamList();
         renderPortalView();
@@ -1664,22 +1857,49 @@
       }
 
       function renderNavigationTabs() {
-        let html = `<button class="active" onclick="switchTab('portalTab', this)">📚 Portal & Study Hub</button>`;
-        html += `<button onclick="switchTab('testTab', this)">📝 Mock Tests & Practice</button>`;
+        const portalActive = document
+          .getElementById("portalTab")
+          .classList.contains("active");
+        const testActive = document
+          .getElementById("testTab")
+          .classList.contains("active");
+
+        let html = `<button class="${portalActive ? "active" : ""}" onclick="switchTab('portalTab', this)">📚 Portal & Study Hub</button>`;
+        html += `<button class="${testActive ? "active" : ""}" onclick="switchTab('testTab', this)">📝 Mock Tests & Practice</button>`;
 
         allExamsList.forEach((exam) => {
-          let activeClass =
-            exam === selectedExamKey
-              ? "style='background:var(--primary); color:white;'"
-              : "";
-          html += `<button ${activeClass} onclick="selectExam('${exam}')">🎯 ${exam}</button>`;
+          const isSelected = exam === selectedExamKey;
+          const activeStyle = isSelected
+            ? "style='background:var(--primary); color:white;'"
+            : "";
+          html += `<button ${activeStyle} onclick="selectExamByName(this.dataset.exam)" data-exam="${encodeURIComponent(exam)}">🎯 ${exam}</button>`;
         });
 
         document.getElementById("dynamicNavTabs").innerHTML = html;
       }
 
-      function selectExam(examName) {
+      function renderUserExamDropdown() {
+        const sel = document.getElementById("userQuickExamSelect");
+        if (!sel) return;
+        let html = "";
+        allExamsList.forEach((exam) => {
+          const isSel = exam === selectedExamKey ? "selected" : "";
+          html += `<option value="${encodeURIComponent(exam)}" ${isSel}>${exam}</option>`;
+        });
+        sel.innerHTML = html;
+      }
+
+      function onUserExamDropdownChange(encodedExam) {
+        const examName = decodeURIComponent(encodedExam);
         selectedExamKey = examName;
+        resetTestSelection();
+        refreshApp();
+      }
+
+      function selectExamByName(encodedExam) {
+        const examName = decodeURIComponent(encodedExam);
+        selectedExamKey = examName;
+        resetTestSelection();
         switchTab("portalTab", document.querySelector(".nav-tabs button"));
         refreshApp();
       }
@@ -1692,6 +1912,7 @@
 
         if (
           btnElement &&
+          btnElement.parentElement &&
           btnElement.parentElement.classList.contains("nav-tabs")
         ) {
           document
@@ -1699,51 +1920,65 @@
             .forEach((b) => b.classList.remove("active"));
           btnElement.classList.add("active");
         }
+        syncExamContextLabels();
       }
 
-      function loginWithGoogle() {
-        let email = prompt(
-          "Enter your Google Gmail ID to login:",
-          "student@gmail.com",
-        );
-        if (email && email.includes("@")) {
-          currentUser = email;
-          document.getElementById("authSection").innerHTML =
-            `<span style="font-weight:bold; color:white;">👤 ${currentUser}</span> <button class="btn btn-warning" onclick="logoutUser()" style="width:auto; padding:6px 12px;">Logout</button>`;
-          document.getElementById("statusAlert").innerHTML =
-            `✅ Welcome <b>${currentUser}</b>! Your active plans will unlock content automatically.`;
-          document.getElementById("statusAlert").style.background = "#ecfdf5";
-          document.getElementById("statusAlert").style.borderColor = "#a7f3d0";
-          document.getElementById("statusAlert").style.color = "#065f46";
-          refreshApp();
-        } else {
-          alert("Invalid Email Address!");
+      async function loginWithGoogle() {
+        if (!firebaseReady || !cloudAuth) {
+          alert("Pehle Firebase config set karein. Setup guide dekhein.");
+          return;
+        }
+        try {
+          const provider = new firebase.auth.GoogleAuthProvider();
+          await cloudAuth.signInWithPopup(provider);
+        } catch (err) {
+          console.error(err);
+          alert("Google Login failed: " + (err.message || "Unknown error"));
         }
       }
 
-      function logoutUser() {
+      async function logoutUser() {
+        if (cloudAuth) await cloudAuth.signOut();
         currentUser = null;
-        document.getElementById("authSection").innerHTML =
-          `<button class="btn btn-google" onclick="loginWithGoogle()" style="width: auto; padding: 8px 16px;">Google Login</button>`;
-        document.getElementById("statusAlert").innerHTML =
-          `🔒 Kripya content access karne ke liye <b>Google Login</b> karein.`;
-        document.getElementById("statusAlert").style.background = "#fef3c7";
-        document.getElementById("statusAlert").style.borderColor = "#fde68a";
-        document.getElementById("statusAlert").style.color = "#92400e";
+        userSubscriptionsByExam = {};
+        renderAuthUI();
         refreshApp();
       }
 
-      function openAdminModal() {
-        let pass = prompt("Enter Admin Secret Password:");
-        if (pass === localStorage.getItem("targetrank_admin_pass")) {
-          switchTab("adminTab");
+      function renderAuthUI() {
+        const auth = document.getElementById("authSection");
+        if (!auth) return;
+        if (currentUser) {
+          const safeName = currentUser.displayName || currentUser.email || "Student";
+          auth.innerHTML = `<span style="font-weight:bold;color:white;">👤 ${safeName}</span>
+            <button class="btn btn-warning" onclick="logoutUser()" style="width:auto;padding:6px 12px;">Logout</button>`;
+          const status = document.getElementById("statusAlert");
+          status.innerHTML = `✅ Welcome <b>${safeName}</b>! ${selectedExamKey} ka content access kar sakte hain.`;
+          status.style.background = "#ecfdf5";
+          status.style.borderColor = "#a7f3d0";
+          status.style.color = "#065f46";
         } else {
-          alert("Incorrect Admin Password!");
+          auth.innerHTML = `<button class="btn btn-google" onclick="loginWithGoogle()" style="width:auto;padding:8px 16px;">Google Login</button>`;
+          const status = document.getElementById("statusAlert");
+          status.innerHTML = `🔒 Content access ke liye <b>Google Login</b> karein.`;
+          status.style.background = "#fef3c7";
+          status.style.borderColor = "#fde68a";
+          status.style.color = "#92400e";
         }
       }
 
+      function openAdminModal() {
+        if (!currentUser || !ADMIN_EMAILS.map(x => x.toLowerCase()).includes((currentUser.email || "").toLowerCase())) {
+          alert("Admin Dashboard sirf ADMIN_EMAILS mein listed Google accounts ke liye hai. Pehle authorized admin account se Google Login karein.");
+          return;
+        }
+        switchTab("adminTab");
+        refreshApp();
+      }
+
       function adminLogout() {
-        switchTab("portalTab");
+        switchTab("portalTab", document.querySelector(".nav-tabs button"));
+        refreshApp();
         alert("Logged out from Admin Center!");
       }
 
@@ -1754,15 +1989,11 @@
         document.getElementById("userActiveExamBanner").innerText =
           `📖 Active Selected Exam: ${selectedExamKey}`;
 
-        let cat = selectedExamKey.split("-")[0].trim();
+        const cat = getExamCategory(selectedExamKey);
         document.getElementById("currentCategoryText").innerText =
           `Category: ${cat}`;
 
-        let syllabus = examSyllabusMap[cat] || [
-          "General Knowledge",
-          "Mathematics",
-          "Reasoning",
-        ];
+        const syllabus = getSyllabusForExam(selectedExamKey);
         let sHtml = "";
         syllabus.forEach((item) => {
           sHtml += `<li>${item}</li>`;
@@ -1770,81 +2001,151 @@
         document.getElementById("syllabusList").innerHTML = sHtml;
 
         ensureExamData(selectedExamKey);
-        let examData = examDatabase[selectedExamKey];
+        const examData = examDatabase[selectedExamKey];
+        const subRec = getExamSubRecord(selectedExamKey);
 
-        // Render PDFs
+        // Render PDFs for selected exam
         let pdfHtml = "";
         if (!examData.pdfs || examData.pdfs.length === 0) {
           pdfHtml =
-            "<p style='color:#64748b;'>No Study PDFs available yet.</p>";
+            "<p style='color:#64748b;'>No Study PDFs available yet for this exam.</p>";
         } else {
           examData.pdfs.forEach((pdf, idx) => {
-            let isUnlocked = isContentUnlocked("pdf", pdf.id);
+            const isUnlocked = isContentUnlocked("pdf", pdf.id, selectedExamKey);
             pdfHtml += `
-                    <div style="background: #f8fafc; padding: 12px 18px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                        <div>
-                            <b>📄 ${pdf.name}</b> 
-                            <span style="color: var(--secondary); font-weight: bold; margin-left: 10px;">₹${pdf.price}</span>
-                        </div>
-                        <div>
-                            ${
-                              isUnlocked
-                                ? `<button class="btn btn-success" style="width: auto; padding: 6px 14px;" onclick="viewPdfContent(${idx})">View Q&A / Download ✅</button>`
-                                : `<button class="btn btn-warning" style="width: auto; padding: 6px 14px;" onclick="triggerPdfUnlock(${idx})">🔒 Unlock & View (₹${pdf.price})</button>`
-                            }
-                        </div>
-                    </div>
-                `;
+              <div style="background: #f8fafc; padding: 12px 18px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div>
+                  <b>📄 ${pdf.name}</b>
+                  <span style="color: var(--secondary); font-weight: bold; margin-left: 10px;">${Number(pdf.price) === 0 ? "FREE" : "₹" + pdf.price}</span>
+                </div>
+                <div>
+                  ${
+                    isUnlocked
+                      ? `<button class="btn btn-success" style="width: auto; padding: 6px 14px;" onclick="viewPdfContent(${idx})">View Q&A / Download ✅</button>`
+                      : `<button class="btn btn-warning" style="width: auto; padding: 6px 14px;" onclick="triggerPdfUnlock(${idx})">🔒 Unlock & View (₹${pdf.price})</button>`
+                  }
+                </div>
+              </div>
+            `;
           });
         }
         document.getElementById("pdfSection").innerHTML = pdfHtml;
 
-        // Render Plans
+        // Render Subscription Plans for selected exam
         let planHtml = "";
         if (!examData.plans || examData.plans.length === 0) {
           planHtml =
-            "<p style='color:#64748b;'>No Plans configured by Admin.</p>";
+            "<p style='color:#64748b;'>No Plans configured by Admin for this exam.</p>";
         } else {
           examData.plans.forEach((plan) => {
+            const alreadyActive =
+              subRec.combo || Boolean(subRec[plan.category]);
+            const encodedTitle = encodeURIComponent(
+              `${plan.category.toUpperCase()} Plan (${selectedExamKey})`,
+            );
             planHtml += `
-                    <div class="plan-card">
-                        <h4>${plan.category.toUpperCase()} ACCESS</h4>
-                        <div class="plan-price">₹${plan.price}</div>
-                        <div class="plan-detail">Validity: ${plan.days} Days</div>
-                        <button class="btn btn-success" onclick="initiatePayment('${plan.category.toUpperCase()} Plan (${selectedExamKey})', ${plan.price}, '${plan.category}')">Buy Now</button>
-                    </div>
-                `;
+              <div class="plan-card">
+                <h4>${plan.category.toUpperCase()} ACCESS</h4>
+                <div class="plan-price">₹${plan.price}</div>
+                <div class="plan-detail">Validity: ${plan.days} Days</div>
+                ${
+                  alreadyActive
+                    ? `<div class="unlocked-pill">Active / Unlocked ✅</div>
+                       <button class="btn" style="background:#0284c7;" onclick="switchToTestsTab()">Open Mock Tests 🚀</button>`
+                    : `<button class="btn btn-success" data-title="${encodedTitle}" data-price="${plan.price}" data-subkey="${plan.category}" onclick="initiatePaymentFromBtn(this)">Buy Now</button>`
+                }
+              </div>
+            `;
           });
         }
         document.getElementById("plansContainer").innerHTML = planHtml;
       }
 
+      function switchToTestsTab() {
+        const btns = document.querySelectorAll(".nav-tabs button");
+        const testBtn = btns[1] || null;
+        switchTab("testTab", testBtn);
+      }
+
       function ensureExamData(examKey) {
-        if (!examDatabase[examKey]) {
-          examDatabase[examKey] = {
-            pdfs: [],
-            plans: [],
-            topicTests: {},
-            fullTests: {},
-          };
-          saveDatabase();
+        if (!examKey) return;
+        if (!examDatabase[examKey]) examDatabase[examKey] = {};
+        const data = examDatabase[examKey];
+        if (!Array.isArray(data.pdfs)) data.pdfs = [];
+        if (!Array.isArray(data.plans)) data.plans = [];
+        if (!data.topicTests || typeof data.topicTests !== "object") data.topicTests = {};
+        if (!data.fullTests || typeof data.fullTests !== "object") data.fullTests = {};
+        if (!data.settings || typeof data.settings !== "object") {
+          data.settings = { razorpayKey: "", upiId: "", qrImage: "", youtubeLink: "", youtubeActive: "yes", youtubeText: "", gateMode: "strict" };
         }
+      }
+
+      function getCloudStatePayload() {
+        return {
+          examDatabase, allExamsList, freeFullMocks, flashNewsList,
+          siteBranding, paymentConfig, youtubeOffer, globalGateConfig, helpStepsList,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
       }
 
       function saveDatabase() {
         localStorage.setItem("targetrank_db", JSON.stringify(examDatabase));
+        localStorage.setItem("targetrank_exams", JSON.stringify(allExamsList));
+        localStorage.setItem("targetrank_free_mocks", JSON.stringify(freeFullMocks));
+        if (firebaseReady && cloudDb && currentUser &&
+            ADMIN_EMAILS.map(x => x.toLowerCase()).includes((currentUser.email || "").toLowerCase())) {
+          clearTimeout(cloudSaveTimer);
+          cloudSaveTimer = setTimeout(() => {
+            cloudDb.collection("appData").doc("main").set(getCloudStatePayload(), { merge: true })
+              .catch(err => console.error("Cloud save failed:", err));
+          }, 350);
+        }
       }
 
-      function isContentUnlocked(type, id) {
+      async function loadCloudAppState() {
+        const snap = await cloudDb.collection("appData").doc("main").get();
+        if (!snap.exists) return; // First authorized Admin save will create this document.
+        const state = snap.data() || {};
+        if (state.examDatabase) examDatabase = state.examDatabase;
+        if (Array.isArray(state.allExamsList)) allExamsList = state.allExamsList;
+        if (state.freeFullMocks) freeFullMocks = state.freeFullMocks;
+        if (Array.isArray(state.flashNewsList)) flashNewsList = state.flashNewsList;
+        if (state.siteBranding) siteBranding = state.siteBranding;
+        if (state.paymentConfig) paymentConfig = state.paymentConfig;
+        if (state.youtubeOffer) youtubeOffer = state.youtubeOffer;
+        if (state.globalGateConfig) globalGateConfig = state.globalGateConfig;
+        if (Array.isArray(state.helpStepsList)) helpStepsList = state.helpStepsList;
+        localStorage.setItem("targetrank_db", JSON.stringify(examDatabase));
+        localStorage.setItem("targetrank_exams", JSON.stringify(allExamsList));
+        localStorage.setItem("targetrank_free_mocks", JSON.stringify(freeFullMocks));
+      }
+
+      async function loadCurrentUserSubscriptions() {
+        userSubscriptionsByExam = {};
+        if (!currentUser || !firebaseReady) return;
+        try {
+          const snap = await cloudDb.collection("users").doc(currentUser.uid).get();
+          if (snap.exists) userSubscriptionsByExam = snap.data().subscriptionsByExam || {};
+          localStorage.setItem("targetrank_user_subs", JSON.stringify(userSubscriptionsByExam));
+        } catch (err) { console.error("Subscription load failed:", err); }
+      }
+
+      function isContentUnlocked(type, id, examKey = selectedExamKey) {
         if (globalGateConfig.mode === "free_all") return true;
         if (
           type === "full" &&
-          freeFullMocks[selectedExamKey] &&
-          freeFullMocks[selectedExamKey].includes(Number(id))
-        )
+          freeFullMocks[examKey] &&
+          freeFullMocks[examKey].includes(Number(id))
+        ) {
           return true;
-        if (userSubscriptions["combo"]) return true;
-        if (userSubscriptions[type]) return true;
+        }
+        const subRec = getExamSubRecord(examKey);
+        if (subRec.combo) return true;
+        if (type === "pdf") {
+          if (subRec.pdfs && subRec.pdfs[String(id)]) return true;
+          return false;
+        }
+        if (subRec[type]) return true;
         return false;
       }
 
@@ -1868,6 +2169,13 @@
         document.getElementById("editQuestionModal").style.display = "none";
       }
 
+      function initiatePaymentFromBtn(btnEl) {
+        const title = decodeURIComponent(btnEl.dataset.title);
+        const price = Number(btnEl.dataset.price);
+        const subKey = btnEl.dataset.subkey;
+        initiatePayment(title, price, subKey);
+      }
+
       function initiatePayment(itemTitle, price, subKey) {
         if (!currentUser) {
           alert("Kripya payment karne se pehle Google Login karein!");
@@ -1878,6 +2186,7 @@
           title: itemTitle,
           price: price,
           subKey: subKey,
+          examKey: selectedExamKey,
         };
         document.getElementById("paymentItemTitle").innerText = itemTitle;
         document.getElementById("paymentItemPrice").innerText = `₹${price}`;
@@ -1887,109 +2196,123 @@
         document.getElementById("paymentModal").style.display = "flex";
       }
 
+      function grantSubscriptionAccess(pendingObj) {
+        const targetExam = pendingObj.examKey || selectedExamKey;
+        const subRec = getExamSubRecord(targetExam);
+        const key = pendingObj.subKey;
+
+        if (key.startsWith("pdf_")) {
+          const pdfId = key.replace("pdf_", "");
+          subRec.pdfs[pdfId] = true;
+        } else if (key === "combo") {
+          subRec.combo = true;
+          subRec.topic = true;
+          subRec.full = true;
+        } else {
+          subRec[key] = true;
+        }
+        saveUserSubscriptions();
+      }
+
       function confirmOfflinePayment() {
-        if (!currentPendingPayment) return;
-        userSubscriptions[currentPendingPayment.subKey] = true;
-        alert(
-          `Payment Success Verified! ${currentPendingPayment.title} has been unlocked for ${currentUser}.`,
-        );
-        closePaymentModal();
-        refreshApp();
+        alert("UPI payment ko sirf button click se verify nahi kiya ja sakta. Payment verification ke liye secure backend/webhook setup zaroori hai. Isliye content abhi unlock nahi hua.");
       }
 
       function payViaRazorpayCheckout() {
         if (!currentPendingPayment) return;
-        var options = {
-          key: paymentConfig.razorpayKey,
-          amount: currentPendingPayment.price * 100,
-          currency: "INR",
-          name: siteBranding.name,
-          description: currentPendingPayment.title,
-          handler: function (response) {
-            alert(
-              "Payment Successful! Payment ID: " + response.razorpay_payment_id,
-            );
-            userSubscriptions[currentPendingPayment.subKey] = true;
-            closePaymentModal();
-            refreshApp();
-          },
-          prefill: { email: currentUser || "student@gmail.com" },
-          theme: { color: "#4f46e5" },
-        };
-        var rzp1 = new Razorpay(options);
-        rzp1.open();
+        alert("Secure Razorpay auto-unlock ke liye Firebase Cloud Function + Razorpay order/signature verification deploy karna zaroori hai. Client-side checkout response par bharosa karke unlock nahi kiya jayega.");
       }
 
       function claimYouTubeSubscribeReward() {
-        window.open(siteBranding.youtubeLink, "_blank");
-        userSubscriptions["combo"] = true;
-        userSubscriptions["topic"] = true;
-        userSubscriptions["full"] = true;
-        alert(
-          "Thank you for Subscribing! All Mock Tests and PDFs have been unlocked for your account! ✅",
-        );
-        refreshApp();
+        if (siteBranding.youtubeLink) window.open(siteBranding.youtubeLink, "_blank", "noopener");
+        alert("YouTube link open ho gaya. Browser page se subscription ko verify nahi kiya ja sakta, isliye content automatically unlock nahi hua. Verified reward ke liye backend integration chahiye.");
       }
 
       function triggerPdfUnlock(index) {
         activePdfViewingIndex = index;
-        let pdf = examDatabase[selectedExamKey].pdfs[index];
+        const pdf = examDatabase[selectedExamKey].pdfs[index];
         document.getElementById("pdfViewTitleDisplay").innerText = pdf.name;
         document.getElementById("pdfModalPriceSpan").innerText = pdf.price;
         document.getElementById("pdfLockedShartBox").style.display = "block";
-        document.getElementById("pdfUnlockedContentArea").style.display =
-          "none";
+        document.getElementById("pdfUnlockedContentArea").style.display = "none";
         document.getElementById("pdfViewModal").style.display = "flex";
       }
 
       function viewPdfContent(index) {
-        let pdf = examDatabase[selectedExamKey].pdfs[index];
+        activePdfViewingIndex = index;
+        const pdf = examDatabase[selectedExamKey].pdfs[index];
         document.getElementById("pdfViewTitleDisplay").innerText = pdf.name;
         document.getElementById("pdfLockedShartBox").style.display = "none";
         document.getElementById("pdfUnlockedContentArea").style.display =
           "block";
+        const fileNote = pdf.fileName
+          ? `\n\n[Attached File: ${pdf.fileName}]`
+          : "";
         document.getElementById("pdfContentQuestionsList").innerText =
-          pdf.qna || "No Preview Text Available.";
+          (pdf.qna || "No Preview Text Available.") + fileNote;
         document.getElementById("pdfViewModal").style.display = "flex";
+      }
+
+      function downloadPdfSummaryTxt() {
+        if (activePdfViewingIndex === null) return;
+        const pdf = examDatabase[selectedExamKey].pdfs[activePdfViewingIndex];
+        const content = `${pdf.name}\nExam: ${selectedExamKey}\n\n${pdf.qna || ""}`;
+        const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${pdf.name.replace(/[^a-z0-9]/gi, "_")}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
       }
 
       function claimYouTubeSubscribeRewardFromModal() {
         claimYouTubeSubscribeReward();
-        if (activePdfViewingIndex !== null)
+        if (activePdfViewingIndex !== null) {
           viewPdfContent(activePdfViewingIndex);
+        }
       }
 
       function payForPdfFromModal() {
         if (activePdfViewingIndex === null) return;
-        let pdf = examDatabase[selectedExamKey].pdfs[activePdfViewingIndex];
+        const pdf = examDatabase[selectedExamKey].pdfs[activePdfViewingIndex];
         closePdfViewModal();
-        initiatePayment(`PDF: ${pdf.name}`, pdf.price, `pdf_${pdf.id}`);
+        initiatePayment(
+          `PDF: ${pdf.name} (${selectedExamKey})`,
+          pdf.price,
+          `pdf_${pdf.id}`,
+        );
       }
 
       // Admin Settings Functions
       function savePaymentSettings() {
-        paymentConfig.razorpayKey = document.getElementById(
-          "adminRazorpayKeyInput",
-        ).value;
-        paymentConfig.upiId = document.getElementById("adminUpiIdInput").value;
-        paymentConfig.qrImage =
-          document.getElementById("adminQrImageInput").value;
+        paymentConfig.razorpayKey = document
+          .getElementById("adminRazorpayKeyInput")
+          .value.trim();
+        paymentConfig.upiId = document
+          .getElementById("adminUpiIdInput")
+          .value.trim();
+        paymentConfig.qrImage = document
+          .getElementById("adminQrImageInput")
+          .value.trim();
         localStorage.setItem(
           "targetrank_pay_config",
           JSON.stringify(paymentConfig),
         );
+        saveDatabase();
         alert("Payment Gateway & QR Settings Saved Successfully!");
       }
 
       function saveYouTubeOfferSettings() {
         youtubeOffer.active = document.getElementById("adminOfferActive").value;
-        youtubeOffer.text = document.getElementById(
-          "adminOfferTextInput",
-        ).value;
+        youtubeOffer.text = document
+          .getElementById("adminOfferTextInput")
+          .value.trim();
         localStorage.setItem(
           "targetrank_yt_offer",
           JSON.stringify(youtubeOffer),
         );
+        saveDatabase();
         applyYouTubeOfferUI();
         alert("YouTube Offer Settings Saved!");
       }
@@ -2002,31 +2325,32 @@
           "targetrank_gate_mode",
           JSON.stringify(globalGateConfig),
         );
+        saveDatabase();
         alert("Global Gate Access Mode Updated!");
         refreshApp();
       }
 
       function updateBrandingSettings() {
-        siteBranding.name = document.getElementById("brandSiteNameInput").value;
-        siteBranding.icon = document.getElementById(
-          "brandLogoEmojiInput",
-        ).value;
-        siteBranding.adminName = document.getElementById(
-          "brandAdminNameInput",
-        ).value;
-        siteBranding.adminEmoji = document.getElementById(
-          "brandAdminEmojiInput",
-        ).value;
-        siteBranding.youtubeLink = document.getElementById(
-          "brandYouTubeLinkInput",
-        ).value;
+        siteBranding.name =
+          document.getElementById("brandSiteNameInput").value.trim() ||
+          "TargetRank";
+        siteBranding.icon =
+          document.getElementById("brandLogoEmojiInput").value.trim() || "🎯";
+        siteBranding.adminName =
+          document.getElementById("brandAdminNameInput").value.trim() || "Ram";
+        siteBranding.adminEmoji =
+          document.getElementById("brandAdminEmojiInput").value.trim() || "🏹";
+        siteBranding.youtubeLink =
+          document.getElementById("brandYouTubeLinkInput").value.trim() ||
+          "https://www.youtube.com";
         localStorage.setItem("targetrank_brand", JSON.stringify(siteBranding));
+        saveDatabase();
         applyBrandingToUI();
         alert("Branding Updated Successfully!");
       }
 
       function adminAddHelpStep() {
-        let val = document.getElementById("adminHelpInput").value;
+        const val = document.getElementById("adminHelpInput").value.trim();
         if (val) {
           helpStepsList.push(val);
           localStorage.setItem(
@@ -2048,7 +2372,7 @@
       }
 
       function adminAddFlashNews() {
-        let val = document.getElementById("adminFlashInput").value;
+        const val = document.getElementById("adminFlashInput").value.trim();
         if (val) {
           flashNewsList.push(val);
           localStorage.setItem(
@@ -2063,87 +2387,120 @@
       function deleteFlashNews(idx) {
         flashNewsList.splice(idx, 1);
         localStorage.setItem("targetrank_flash", JSON.stringify(flashNewsList));
+        saveDatabase();
         renderFlashNewsTicker();
       }
 
       function renderAdminExamDropdown() {
+        const sel = document.getElementById("adminGlobalExamSelect");
+        if (!sel) return;
         let html = "";
         allExamsList.forEach((exam) => {
-          let sel = exam === selectedExamKey ? "selected" : "";
-          html += `<option value="${exam}" ${sel}>${exam}</option>`;
+          const isSel = exam === selectedExamKey ? "selected" : "";
+          html += `<option value="${encodeURIComponent(exam)}" ${isSel}>${exam}</option>`;
         });
-        document.getElementById("adminGlobalExamSelect").innerHTML = html;
+        sel.innerHTML = html;
       }
 
       function onAdminExamChange() {
-        selectedExamKey = document.getElementById(
-          "adminGlobalExamSelect",
-        ).value;
+        const sel = document.getElementById("adminGlobalExamSelect");
+        selectedExamKey = decodeURIComponent(sel.value);
+        resetTestSelection();
         refreshApp();
       }
 
       function addNewExam() {
-        let cat = document.getElementById("newExamCategory").value.trim();
-        let title = document.getElementById("newExamTitleInput").value.trim();
+        const cat = document.getElementById("newExamCategory").value.trim();
+        const title = document.getElementById("newExamTitleInput").value.trim();
         if (!cat || !title) {
           alert("Enter both Category and Exam Title!");
           return;
         }
 
-        let fullKey = `${cat} - ${title}`;
+        const fullKey = `${cat} - ${title}`;
         if (!allExamsList.includes(fullKey)) {
           allExamsList.push(fullKey);
           localStorage.setItem(
             "targetrank_exams",
             JSON.stringify(allExamsList),
           );
-          ensureExamData(fullKey);
-          selectedExamKey = fullKey;
-          refreshApp();
-          alert(`Exam "${fullKey}" added!`);
         }
+        if (!freeFullMocks[fullKey]) {
+          freeFullMocks[fullKey] = [1];
+          localStorage.setItem(
+            "targetrank_free_mocks",
+            JSON.stringify(freeFullMocks),
+          );
+        }
+        ensureExamData(fullKey);
+        saveDatabase();
+        selectedExamKey = fullKey;
+        document.getElementById("newExamTitleInput").value = "";
+        resetTestSelection();
+        refreshApp();
+        alert(
+          `Exam "${fullKey}" added! Ab sabhi options (Questions, PDFs, Plans, Mock Tests) "${fullKey}" ke liye active hain.`,
+        );
       }
 
       function renderAdminExamList() {
         let html = "";
         allExamsList.forEach((ex, idx) => {
           html += `
-                <div class="list-item-admin">
-                    <span><b>${ex}</b></span>
-                    <button class="btn btn-danger" style="width:auto; padding:4px 10px;" onclick="deleteExam(${idx})">Delete Exam</button>
-                </div>
-            `;
+            <div class="list-item-admin">
+              <span><b>${ex}</b></span>
+              <div style="display:flex; gap:6px;">
+                <button class="btn" style="background:#4f46e5; width:auto; padding:4px 10px;" onclick="selectExamFromAdmin(${idx})">Select</button>
+                <button class="btn btn-danger" style="width:auto; padding:4px 10px;" onclick="deleteExam(${idx})">Delete Exam</button>
+              </div>
+            </div>
+          `;
         });
         document.getElementById("adminExamListContainer").innerHTML = html;
       }
 
+      function selectExamFromAdmin(idx) {
+        selectedExamKey = allExamsList[idx];
+        resetTestSelection();
+        refreshApp();
+      }
+
       function deleteExam(idx) {
-        if (confirm("Are you sure you want to delete this exam?")) {
-          let removed = allExamsList.splice(idx, 1)[0];
-          delete examDatabase[removed];
-          localStorage.setItem(
-            "targetrank_exams",
-            JSON.stringify(allExamsList),
-          );
-          saveDatabase();
-          if (allExamsList.length > 0) selectedExamKey = allExamsList[0];
-          refreshApp();
-        }
+        if (!confirm("Are you sure you want to delete this exam?")) return;
+        const removed = allExamsList.splice(idx, 1)[0];
+        delete examDatabase[removed];
+        delete freeFullMocks[removed];
+        delete userSubscriptionsByExam[removed];
+
+        localStorage.setItem("targetrank_exams", JSON.stringify(allExamsList));
+        localStorage.setItem(
+          "targetrank_free_mocks",
+          JSON.stringify(freeFullMocks),
+        );
+        saveUserSubscriptions();
+        saveDatabase();
+
+        selectedExamKey = allExamsList.length > 0 ? allExamsList[0] : "";
+        resetTestSelection();
+        refreshApp();
       }
 
       function updateAdminPassword() {
-        let pass = document.getElementById("newAdminPassInput").value;
+        const pass = document.getElementById("newAdminPassInput").value.trim();
         if (pass) {
           localStorage.setItem("targetrank_admin_pass", pass);
+          document.getElementById("newAdminPassInput").value = "";
           alert("Admin password updated!");
         }
       }
 
       function adminAddPlan() {
+        if (!selectedExamKey) return;
         ensureExamData(selectedExamKey);
-        let cat = document.getElementById("adminPlanCategory").value;
-        let days = Number(document.getElementById("adminPlanDays").value);
-        let price = Number(document.getElementById("adminPlanPrice").value);
+        const cat = document.getElementById("adminPlanCategory").value;
+        const days = Number(document.getElementById("adminPlanDays").value) || 30;
+        const price =
+          Number(document.getElementById("adminPlanPrice").value) || 49;
 
         examDatabase[selectedExamKey].plans.push({
           id: Date.now(),
@@ -2157,8 +2514,9 @@
       }
 
       function renderAdminPlanList() {
+        if (!selectedExamKey) return;
         ensureExamData(selectedExamKey);
-        let plans = examDatabase[selectedExamKey].plans || [];
+        const plans = examDatabase[selectedExamKey].plans || [];
         let html = "";
         plans.forEach((p, idx) => {
           html += `<div class="list-item-admin"><span>${p.category.toUpperCase()} - ${p.days} Days (₹${p.price})</span> <button class="btn btn-danger" style="width:auto; padding:2px 8px;" onclick="deletePlan(${idx})">Delete</button></div>`;
@@ -2174,10 +2532,17 @@
       }
 
       function adminAddPdf() {
+        if (!selectedExamKey) return;
         ensureExamData(selectedExamKey);
-        let name = document.getElementById("adminPdfName").value;
-        let price = Number(document.getElementById("adminPdfPrice").value);
-        let qna = document.getElementById("adminPdfQnAInput").value;
+        const name = document.getElementById("adminPdfName").value.trim();
+        const price =
+          Number(document.getElementById("adminPdfPrice").value) || 0;
+        const qna = document.getElementById("adminPdfQnAInput").value.trim();
+        const fileInput = document.getElementById("adminPdfFile");
+        const fileName =
+          fileInput && fileInput.files && fileInput.files[0]
+            ? fileInput.files[0].name
+            : "";
 
         if (!name) {
           alert("Enter PDF Name!");
@@ -2188,17 +2553,20 @@
           name: name,
           price: price,
           qna: qna,
+          fileName: fileName,
         });
         saveDatabase();
         document.getElementById("adminPdfName").value = "";
         document.getElementById("adminPdfQnAInput").value = "";
+        if (fileInput) fileInput.value = "";
         renderPortalView();
         renderAdminPdfList();
       }
 
       function renderAdminPdfList() {
+        if (!selectedExamKey) return;
         ensureExamData(selectedExamKey);
-        let pdfs = examDatabase[selectedExamKey].pdfs || [];
+        const pdfs = examDatabase[selectedExamKey].pdfs || [];
         let html = "";
         pdfs.forEach((pdf, idx) => {
           html += `<div class="list-item-admin"><span>📄 ${pdf.name} (₹${pdf.price})</span> <button class="btn btn-danger" style="width:auto; padding:2px 8px;" onclick="deletePdf(${idx})">Delete</button></div>`;
@@ -2215,27 +2583,30 @@
 
       // Fixed 1 to 30 Mock Test Control
       function renderAdminFullMockStatusList() {
-        if (!freeFullMocks[selectedExamKey])
+        if (!selectedExamKey) return;
+        if (!freeFullMocks[selectedExamKey]) {
           freeFullMocks[selectedExamKey] = [1];
-        let freeList = freeFullMocks[selectedExamKey];
+        }
+        const freeList = freeFullMocks[selectedExamKey];
         let html = "";
 
         for (let i = 1; i <= 30; i++) {
-          let isFree = freeList.includes(i);
+          const isFree = freeList.includes(i);
           html += `
-                <button class="btn ${isFree ? "btn-success" : "btn-danger"}" style="width: auto; padding: 6px 12px; font-size: 0.85rem;" onclick="toggleMockFreeStatus(${i})">
-                    Mock ${i}: ${isFree ? "FREE" : "PAID"}
-                </button>
-            `;
+            <button class="btn ${isFree ? "btn-success" : "btn-danger"}" style="width: auto; padding: 6px 12px; font-size: 0.85rem;" onclick="toggleMockFreeStatus(${i})">
+              Mock ${i}: ${isFree ? "FREE" : "PAID"}
+            </button>
+          `;
         }
         document.getElementById("adminFullMockStatusList").innerHTML = html;
       }
 
       function toggleMockFreeStatus(num) {
-        if (!freeFullMocks[selectedExamKey])
+        if (!freeFullMocks[selectedExamKey]) {
           freeFullMocks[selectedExamKey] = [];
-        let list = freeFullMocks[selectedExamKey];
-        let idx = list.indexOf(num);
+        }
+        const list = freeFullMocks[selectedExamKey];
+        const idx = list.indexOf(num);
         if (idx > -1) list.splice(idx, 1);
         else list.push(num);
 
@@ -2243,38 +2614,28 @@
           "targetrank_free_mocks",
           JSON.stringify(freeFullMocks),
         );
+        saveDatabase();
         renderAdminFullMockStatusList();
       }
 
-      // Question Management Dropdowns & Rendering
+      // Question Management Dropdowns & Rendering (Works for ALL Exams)
       function populateAdminTestDropdowns() {
-        let cat = selectedExamKey.split("-")[0].trim();
-        let topics = topicListMap[cat] || [
-          "General Awareness",
-          "Mathematics",
-          "Reasoning",
-        ];
-
+        const topics = getTopicsForExam(selectedExamKey);
         let tHtml = "";
         topics.forEach((t) => {
-          tHtml += `<option value="${t}">${t}</option>`;
+          tHtml += `<option value="${encodeURIComponent(t)}">${t}</option>`;
         });
         document.getElementById("adminQTopic").innerHTML = tHtml;
-
         toggleTestNumberDropdown();
       }
 
       function toggleTestNumberDropdown() {
-        let testType = document.getElementById("adminTestType").value;
-        let numSelect = document.getElementById("adminTestNum");
-        let topicGroup = document.getElementById("topicSelectGroup");
+        const testType = document.getElementById("adminTestType").value;
+        const numSelect = document.getElementById("adminTestNum");
+        const topicGroup = document.getElementById("topicSelectGroup");
 
-        let maxCount = testType === "topic" ? 10 : 30;
-        if (testType === "full") {
-          topicGroup.style.display = "none";
-        } else {
-          topicGroup.style.display = "block";
-        }
+        const maxCount = testType === "topic" ? 10 : 30;
+        topicGroup.style.display = testType === "full" ? "none" : "block";
 
         let html = "";
         for (let i = 1; i <= maxCount; i++) {
@@ -2285,29 +2646,36 @@
       }
 
       function adminAddQuestion() {
+        if (!selectedExamKey) {
+          alert("Pehle koi Exam select karein!");
+          return;
+        }
         ensureExamData(selectedExamKey);
-        let type = document.getElementById("adminTestType").value;
-        let topic = document.getElementById("adminQTopic").value;
-        let num = document.getElementById("adminTestNum").value;
+        const type = document.getElementById("adminTestType").value;
+        const topic = decodeURIComponent(
+          document.getElementById("adminQTopic").value || "",
+        );
+        const num = Number(document.getElementById("adminTestNum").value);
 
-        let qEn = document.getElementById("adminQTextEn").value;
-        let qHi = document.getElementById("adminQTextHi").value;
-        let optAEn = document.getElementById("adminOptAEn").value;
-        let optAHi = document.getElementById("adminOptAHi").value;
-        let optBEn = document.getElementById("adminOptBEn").value;
-        let optBHi = document.getElementById("adminOptBHi").value;
-        let optCEn = document.getElementById("adminOptCEn").value;
-        let optCHi = document.getElementById("adminOptCHi").value;
-        let optDEn = document.getElementById("adminOptDEn").value;
-        let optDHi = document.getElementById("adminOptDHi").value;
+        const qEn = document.getElementById("adminQTextEn").value.trim();
+        const qHi = document.getElementById("adminQTextHi").value.trim();
+        const optAEn = document.getElementById("adminOptAEn").value.trim();
+        const optAHi = document.getElementById("adminOptAHi").value.trim();
+        const optBEn = document.getElementById("adminOptBEn").value.trim();
+        const optBHi = document.getElementById("adminOptBHi").value.trim();
+        const optCEn = document.getElementById("adminOptCEn").value.trim();
+        const optCHi = document.getElementById("adminOptCHi").value.trim();
+        const optDEn = document.getElementById("adminOptDEn").value.trim();
+        const optDHi = document.getElementById("adminOptDHi").value.trim();
         let correct = Number(document.getElementById("adminQCorrect").value);
+        if (isNaN(correct) || correct < 0 || correct > 3) correct = 0;
 
         if (!qEn && !qHi) {
-          alert("Enter Question text!");
+          alert("Enter Question text (English ya Hindi mein)!");
           return;
         }
 
-        let qObj = {
+        const qObj = {
           en: qEn,
           hi: qHi,
           optsEn: [optAEn, optBEn, optCEn, optDEn],
@@ -2316,18 +2684,20 @@
         };
 
         if (type === "topic") {
-          let key = `${topic}_${num}`;
-          if (!examDatabase[selectedExamKey].topicTests[key])
+          const key = `${topic}_${num}`;
+          if (!examDatabase[selectedExamKey].topicTests[key]) {
             examDatabase[selectedExamKey].topicTests[key] = [];
+          }
           examDatabase[selectedExamKey].topicTests[key].push(qObj);
         } else {
-          if (!examDatabase[selectedExamKey].fullTests[num])
+          if (!examDatabase[selectedExamKey].fullTests[num]) {
             examDatabase[selectedExamKey].fullTests[num] = [];
+          }
           examDatabase[selectedExamKey].fullTests[num].push(qObj);
         }
 
         saveDatabase();
-        alert("Question Added Successfully!");
+        alert(`Question Added Successfully in ${selectedExamKey}!`);
         renderAdminQuestionList();
 
         // Clear Inputs
@@ -2344,25 +2714,34 @@
       }
 
       function getTargetQuestionArray() {
+        if (!selectedExamKey) return [];
         ensureExamData(selectedExamKey);
-        let type = document.getElementById("adminTestType").value;
-        let topic = document.getElementById("adminQTopic").value;
-        let num = document.getElementById("adminTestNum").value;
+        const type = document.getElementById("adminTestType").value;
+        const topic = decodeURIComponent(
+          document.getElementById("adminQTopic").value || "",
+        );
+        const num = Number(document.getElementById("adminTestNum").value);
 
         if (type === "topic") {
-          let key = `${topic}_${num}`;
-          return examDatabase[selectedExamKey].topicTests[key] || [];
+          const key = `${topic}_${num}`;
+          if (!examDatabase[selectedExamKey].topicTests[key]) {
+            examDatabase[selectedExamKey].topicTests[key] = [];
+          }
+          return examDatabase[selectedExamKey].topicTests[key];
         } else {
-          return examDatabase[selectedExamKey].fullTests[num] || [];
+          if (!examDatabase[selectedExamKey].fullTests[num]) {
+            examDatabase[selectedExamKey].fullTests[num] = [];
+          }
+          return examDatabase[selectedExamKey].fullTests[num];
         }
       }
 
       function renderAdminQuestionList() {
-        let qArr = getTargetQuestionArray();
-        let container = document.getElementById(
+        const qArr = getTargetQuestionArray();
+        const container = document.getElementById(
           "adminExistingQuestionsContainer",
         );
-        if (qArr.length === 0) {
+        if (!qArr || qArr.length === 0) {
           container.innerHTML =
             "<p style='color:#64748b; margin:0;'>No questions added in this test yet.</p>";
           return;
@@ -2371,41 +2750,44 @@
         let html = "";
         qArr.forEach((q, idx) => {
           html += `
-                <div class="list-item-admin">
-                    <div>
-                        <b>Q${idx + 1}:</b> ${q.en || q.hi}
-                    </div>
-                    <div style="display:flex; gap:6px;">
-                        <button class="btn" style="background:#0284c7; width:auto; padding:4px 10px;" onclick="viewQuestionDetails(${idx})">View</button>
-                        <button class="btn btn-warning" style="width:auto; padding:4px 10px;" onclick="openEditQuestionModal(${idx})">Edit</button>
-                        <button class="btn btn-danger" style="width:auto; padding:4px 10px;" onclick="deleteQuestion(${idx})">Delete</button>
-                    </div>
-                </div>
-            `;
+            <div class="list-item-admin">
+              <div>
+                <b>Q${idx + 1}:</b> ${q.en || q.hi}
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button class="btn" style="background:#0284c7; width:auto; padding:4px 10px;" onclick="viewQuestionDetails(${idx})">View</button>
+                <button class="btn btn-warning" style="width:auto; padding:4px 10px;" onclick="openEditQuestionModal(${idx})">Edit</button>
+                <button class="btn btn-danger" style="width:auto; padding:4px 10px;" onclick="deleteQuestion(${idx})">Delete</button>
+              </div>
+            </div>
+          `;
         });
         container.innerHTML = html;
       }
 
       function viewQuestionDetails(idx) {
-        let qArr = getTargetQuestionArray();
-        let q = qArr[idx];
-        let html = `
-            <p><b>Question (EN):</b> ${q.en || "N/A"}</p>
-            <p><b>Question (HI):</b> ${q.hi || "N/A"}</p>
-            <hr>
-            <p><b>Option A:</b> ${q.optsEn[0]} / ${q.optsHi[0]}</p>
-            <p><b>Option B:</b> ${q.optsEn[1]} / ${q.optsHi[1]}</p>
-            <p><b>Option C:</b> ${q.optsEn[2]} / ${q.optsHi[2]}</p>
-            <p><b>Option D:</b> ${q.optsEn[3]} / ${q.optsHi[3]}</p>
-            <p style="color:var(--secondary); font-weight:bold;">Correct Answer Index: ${q.correct} (${["A", "B", "C", "D"][q.correct]})</p>
+        const qArr = getTargetQuestionArray();
+        const q = qArr[idx];
+        if (!q) return;
+        const html = `
+          <p><b>Exam:</b> ${selectedExamKey}</p>
+          <p><b>Question (EN):</b> ${q.en || "N/A"}</p>
+          <p><b>Question (HI):</b> ${q.hi || "N/A"}</p>
+          <hr>
+          <p><b>Option A:</b> ${q.optsEn[0]} / ${q.optsHi[0]}</p>
+          <p><b>Option B:</b> ${q.optsEn[1]} / ${q.optsHi[1]}</p>
+          <p><b>Option C:</b> ${q.optsEn[2]} / ${q.optsHi[2]}</p>
+          <p><b>Option D:</b> ${q.optsEn[3]} / ${q.optsHi[3]}</p>
+          <p style="color:var(--secondary); font-weight:bold;">Correct Answer Index: ${q.correct} (${["A", "B", "C", "D"][q.correct] || "A"})</p>
         `;
         document.getElementById("viewQuestionContentBody").innerHTML = html;
         document.getElementById("viewQuestionModal").style.display = "flex";
       }
 
       function openEditQuestionModal(idx) {
-        let qArr = getTargetQuestionArray();
-        let q = qArr[idx];
+        const qArr = getTargetQuestionArray();
+        const q = qArr[idx];
+        if (!q) return;
         document.getElementById("editQIndex").value = idx;
         document.getElementById("editQTextEn").value = q.en || "";
         document.getElementById("editQTextHi").value = q.hi || "";
@@ -2422,8 +2804,9 @@
       }
 
       function saveEditedQuestion() {
-        let idx = Number(document.getElementById("editQIndex").value);
-        let qArr = getTargetQuestionArray();
+        const idx = Number(document.getElementById("editQIndex").value);
+        const qArr = getTargetQuestionArray();
+        if (!qArr[idx]) return;
 
         qArr[idx] = {
           en: document.getElementById("editQTextEn").value,
@@ -2440,7 +2823,7 @@
             document.getElementById("editOptCHi").value,
             document.getElementById("editOptDHi").value,
           ],
-          correct: Number(document.getElementById("editQCorrect").value),
+          correct: Number(document.getElementById("editQCorrect").value) || 0,
         };
 
         saveDatabase();
@@ -2450,7 +2833,7 @@
       }
 
       function deleteQuestion(idx) {
-        let qArr = getTargetQuestionArray();
+        const qArr = getTargetQuestionArray();
         qArr.splice(idx, 1);
         saveDatabase();
         renderAdminQuestionList();
@@ -2458,44 +2841,51 @@
 
       // User Test Execution Engine
       function startTestMode(mode) {
-        let selectionArea = document.getElementById("testSelectionScreen");
-        let activeArea = document.getElementById("activeTestArea");
+        ensureExamData(selectedExamKey);
+        const selectionArea = document.getElementById("testSelectionScreen");
+        const activeArea = document.getElementById("activeTestArea");
+        const topics = getTopicsForExam(selectedExamKey);
 
         let html = "";
-        let cat = selectedExamKey.split("-")[0].trim();
-        let topics = topicListMap[cat] || [
-          "General Awareness",
-          "Mathematics",
-          "Reasoning",
-        ];
-
         if (mode === "topic") {
-          html += `<h3 style="color:var(--primary);">Select Topic-Wise Practice Set</h3><div class="grid">`;
+          html += `<h3 style="color:var(--primary);">Select Topic-Wise Practice Set (${selectedExamKey})</h3><div class="grid">`;
           topics.forEach((t) => {
             for (let i = 1; i <= 10; i++) {
+              const qCount = (
+                examDatabase[selectedExamKey].topicTests[`${t}_${i}`] || []
+              ).length;
+              const unlocked = isContentUnlocked("topic", i, selectedExamKey);
               html += `
-                        <div class="card" style="text-align:center;">
-                            <h4>${t} - Set ${i}</h4>
-                            <button class="btn btn-success" onclick="launchUserExam('topic', '${t}', ${i})">Start Set ${i} (10 Qs)</button>
-                        </div>
-                    `;
+                <div class="card" style="text-align:center;">
+                  <h4>${t} - Set ${i}</h4>
+                  <p style="font-size:0.85rem; color:#64748b;">Questions: <b>${qCount}</b></p>
+                  ${
+                    unlocked
+                      ? `<button class="btn btn-success" onclick="launchUserExam('topic', decodeURIComponent(this.dataset.topic), ${i})" data-topic="${encodeURIComponent(t)}">Start Set ${i}</button>`
+                      : `<button class="btn btn-warning" onclick="initiatePayment('Topic Set ${i} (${selectedExamKey})', 29, 'topic')">🔒 Unlock Set ${i} (₹29)</button>`
+                  }
+                </div>
+              `;
             }
           });
           html += `</div>`;
         } else {
-          html += `<h3 style="color:var(--primary);">Select Full CBT Mock Test (1 to 30)</h3><div class="grid">`;
+          html += `<h3 style="color:var(--primary);">Select Full CBT Mock Test (1 to 30) — ${selectedExamKey}</h3><div class="grid">`;
           for (let i = 1; i <= 30; i++) {
-            let unlocked = isContentUnlocked("full", i);
+            const qCount = (examDatabase[selectedExamKey].fullTests[i] || [])
+              .length;
+            const unlocked = isContentUnlocked("full", i, selectedExamKey);
             html += `
-                    <div class="card" style="text-align:center;">
-                        <h4>Full CBT Mock Test ${i}</h4>
-                        ${
-                          unlocked
-                            ? `<button class="btn btn-success" onclick="launchUserExam('full', '', ${i})">Start Mock Test ${i} 🚀</button>`
-                            : `<button class="btn btn-warning" onclick="initiatePayment('Full Mock Test ${i}', 49, 'full')">🔒 Unlock Test ${i} (₹49)</button>`
-                        }
-                    </div>
-                `;
+              <div class="card" style="text-align:center;">
+                <h4>Full CBT Mock Test ${i}</h4>
+                <p style="font-size:0.85rem; color:#64748b;">Questions: <b>${qCount}</b></p>
+                ${
+                  unlocked
+                    ? `<button class="btn btn-success" onclick="launchUserExam('full', '', ${i})">Start Mock Test ${i} 🚀</button>`
+                    : `<button class="btn btn-warning" onclick="initiatePayment('Full Mock Test ${i} (${selectedExamKey})', 49, 'full')">🔒 Unlock Test ${i} (₹49)</button>`
+                }
+              </div>
+            `;
           }
           html += `</div>`;
         }
@@ -2522,8 +2912,10 @@
           qList = examDatabase[selectedExamKey].fullTests[num] || [];
         }
 
-        if (qList.length === 0) {
-          alert("This test has no questions added by Admin yet!");
+        if (!qList || qList.length === 0) {
+          alert(
+            `${selectedExamKey} ke is test mein abhi koi question add nahi kiya gaya hai!`,
+          );
           return;
         }
 
@@ -2539,40 +2931,41 @@
       }
 
       function renderExamWindow() {
-        let session = currentActiveTestSession;
-        let container = document.getElementById("activeTestArea");
+        const session = currentActiveTestSession;
+        const container = document.getElementById("activeTestArea");
 
         let html = `
-            <div class="test-header">
-                <h2>${selectedExamKey} - Active Test Window</h2>
-                <div>
-                    <button class="btn" style="width:auto; padding:6px 12px; background:#475569;" onclick="toggleTestLanguage()">Toggle Language (${session.lang.toUpperCase()})</button>
-                    <span class="timer-box" id="testDisplayTimer">Time Left: --:--</span>
-                </div>
+          <div class="test-header">
+            <h2>${selectedExamKey} - Active Test Window</h2>
+            <div>
+              <button class="btn" style="width:auto; padding:6px 12px; background:#475569;" onclick="toggleTestLanguage()">Toggle Language (${session.lang.toUpperCase()})</button>
+              <span class="timer-box" id="testDisplayTimer">Time Left: --:--</span>
             </div>
+          </div>
         `;
 
         session.questions.forEach((q, qIdx) => {
-          let qText = session.lang === "hi" && q.hi ? q.hi : q.en || q.hi;
-          let opts =
-            session.lang === "hi" && q.optsHi && q.optsHi[0]
+          const qText =
+            session.lang === "hi" && q.hi ? q.hi : q.en || q.hi;
+          const opts =
+            session.lang === "hi" && q.optsHi && q.optsHi.some((x) => x)
               ? q.optsHi
               : q.optsEn;
 
           html += `
-                <div class="question-box">
-                    <h3>Q${qIdx + 1}. ${qText}</h3>
-                    <div class="options">
-            `;
+            <div class="question-box">
+              <h3>Q${qIdx + 1}. ${qText}</h3>
+              <div class="options">
+          `;
 
           opts.forEach((opt, optIdx) => {
-            let checked = session.userAnswers[qIdx] === optIdx ? "checked" : "";
+            const checked = session.userAnswers[qIdx] === optIdx ? "checked" : "";
             html += `
-                    <label>
-                        <input type="radio" name="q_${qIdx}" value="${optIdx}" ${checked} onchange="recordUserAnswer(${qIdx}, ${optIdx})">
-                        ${["A", "B", "C", "D"][optIdx]}. ${opt}
-                    </label>
-                `;
+              <label>
+                <input type="radio" name="q_${qIdx}" value="${optIdx}" ${checked} onchange="recordUserAnswer(${qIdx}, ${optIdx})">
+                ${["A", "B", "C", "D"][optIdx]}. ${opt}
+              </label>
+            `;
           });
 
           html += `</div></div>`;
@@ -2602,11 +2995,11 @@
           if (!currentActiveTestSession) return;
           currentActiveTestSession.timeLeft--;
 
-          let m = Math.floor(currentActiveTestSession.timeLeft / 60);
-          let s = currentActiveTestSession.timeLeft % 60;
-          let display = `${m}:${s < 10 ? "0" : ""}${s}`;
+          const m = Math.floor(currentActiveTestSession.timeLeft / 60);
+          const s = currentActiveTestSession.timeLeft % 60;
+          const display = `${m}:${s < 10 ? "0" : ""}${s}`;
 
-          let timerEl = document.getElementById("testDisplayTimer");
+          const timerEl = document.getElementById("testDisplayTimer");
           if (timerEl) timerEl.innerText = `Time Left: ${display}`;
 
           if (currentActiveTestSession.timeLeft <= 0) {
@@ -2619,7 +3012,7 @@
 
       function submitExamAndShowResult() {
         if (testTimerInterval) clearInterval(testTimerInterval);
-        let session = currentActiveTestSession;
+        const session = currentActiveTestSession;
         if (!session) return;
 
         let correctCount = 0;
@@ -2627,47 +3020,48 @@
         let skippedCount = 0;
 
         session.questions.forEach((q, idx) => {
-          let userAns = session.userAnswers[idx];
+          const userAns = session.userAnswers[idx];
           if (userAns === null) skippedCount++;
           else if (userAns === q.correct) correctCount++;
           else incorrectCount++;
         });
 
-        let totalScore = correctCount * 1 - incorrectCount * 0.33;
+        const totalScore = correctCount * 1 - incorrectCount * 0.33;
 
         let html = `
-            <div class="score-summary">
-                <h2>🎯 Exam Performance Results</h2>
-                <p>Total Questions: ${session.questions.length}</p>
-                <p style="color:var(--secondary);">Correct: ${correctCount} | Incorrect: ${incorrectCount} | Skipped: ${skippedCount}</p>
-                <p style="font-size:1.5rem; color:var(--primary);">Final Score: ${totalScore.toFixed(2)} Marks</p>
-            </div>
-            <h3>Detailed Solution & Review</h3>
+          <div class="score-summary">
+            <h2>🎯 Exam Performance Results (${selectedExamKey})</h2>
+            <p>Total Questions: ${session.questions.length}</p>
+            <p style="color:var(--secondary);">Correct: ${correctCount} | Incorrect: ${incorrectCount} | Skipped: ${skippedCount}</p>
+            <p style="font-size:1.5rem; color:var(--primary);">Final Score: ${totalScore.toFixed(2)} Marks</p>
+          </div>
+          <h3>Detailed Solution & Review</h3>
         `;
 
         session.questions.forEach((q, idx) => {
-          let userAns = session.userAnswers[idx];
-          let isCorrect = userAns === q.correct;
-          let isSkipped = userAns === null;
-          let statusClass = isSkipped
+          const userAns = session.userAnswers[idx];
+          const isCorrect = userAns === q.correct;
+          const isSkipped = userAns === null;
+          const statusClass = isSkipped
             ? "skipped"
             : isCorrect
               ? "correct"
               : "incorrect";
 
-          let qText = session.lang === "hi" && q.hi ? q.hi : q.en || q.hi;
-          let opts =
-            session.lang === "hi" && q.optsHi && q.optsHi[0]
+          const qText =
+            session.lang === "hi" && q.hi ? q.hi : q.en || q.hi;
+          const opts =
+            session.lang === "hi" && q.optsHi && q.optsHi.some((x) => x)
               ? q.optsHi
               : q.optsEn;
 
           html += `
-                <div class="review-card ${statusClass}">
-                    <h4>Q${idx + 1}. ${qText}</h4>
-                    <p>Your Answer: ${userAns !== null ? opts[userAns] : "Skipped"}</p>
-                    <p style="color:var(--secondary); font-weight:bold;">Correct Answer: ${opts[q.correct]}</p>
-                </div>
-            `;
+            <div class="review-card ${statusClass}">
+              <h4>Q${idx + 1}. ${qText}</h4>
+              <p>Your Answer: ${userAns !== null ? opts[userAns] : "Skipped"}</p>
+              <p style="color:var(--secondary); font-weight:bold;">Correct Answer: ${opts[q.correct]}</p>
+            </div>
+          `;
         });
 
         html += `<button class="btn" style="background:#64748b; margin-top:20px;" onclick="resetTestSelection()">Close Result & Back to Tests</button>`;
