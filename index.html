@@ -1958,6 +1958,7 @@
         if (currentUser) {
           const email = currentUser.email || "Google account";
           auth.innerHTML = `<span id="signedInEmail" style="font-weight:bold;color:white;"></span>
+            <button class="btn btn-google" onclick="switchGoogleAccount()" style="width:auto;padding:6px 12px;">Change Google Account</button>
             <button class="btn btn-warning" onclick="logoutUser()" style="width:auto;padding:6px 12px;">Logout</button>`;
           const emailLabel = document.getElementById("signedInEmail");
           if (emailLabel) emailLabel.textContent = "👤 " + email;
@@ -1977,6 +1978,16 @@
             status.style.borderColor = "#fde68a";
             status.style.color = "#92400e";
           }
+        }
+      }
+
+      async function switchGoogleAccount() {
+        try {
+          adminAuthenticated = false;
+          await cloudAuth.signOut();
+          await loginWithGoogle();
+        } catch (err) {
+          alert("Google account change nahi ho paya: " + (err.message || "Unknown error"));
         }
       }
 
