@@ -1,76 +1,30 @@
-const crypto = require('crypto');
-const { getAdmin } = require('../lib/firebase-admin');
-
-function send(res, status, body) {
-  res.status(status).setHeader('Content-Type', 'application/json').send(JSON.stringify(body));
-}
+const Razorpay = require('razorpay');
+const { getDb, authenticate } = require('../firebase-admin');
 
 module.exports = async function handler(req, res) {
-  const allowedOrigin = process.env.FRONTEND_ORIGIN || 'https://769gopi-del.github.io';
-  const origin = req.headers.origin;
-  if (origin === allowedOrigin || origin === 'https://769gopi-del.github.io') {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Vary', 'Origin');
-    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  }
-  if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   try {
-    const keyId = process.env.RAZORPAY_KEY_ID;
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
-    if (!keyId || !keySecret) return send(res, 500, { error: 'Razorpay keys are not configured' });
-
-    const admin = getAdmin();
-    const authHeader = req.headers.authorization || '';
-    const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
-    if (!idToken) return send(res, 401, { error: 'Google login required' });
-    const decoded = await admin.auth().verifyIdToken(idToken);
-    if (!decoded.email_verified) return send(res, 403, { error: 'Verified Google account required' });
-
+    const user = await authenticate(req);
     const { examKey, itemType, itemId } = req.body || {};
-    if (typeof examKey !== 'string' || !examKey || !['plan', 'pdf'].includes(itemType) || itemId == null)
-      return send(res, 400, { error: 'Invalid exam or purchase item' });
-
-    // Read the admin-managed price from Firestore; never trust a price sent by the browser.
-    const db = admin.firestore();
+    if (!examKey || !itemId || !['plan', 'pdf'].includes(itemType)) return res.status(400).json({ error: 'Invalid product details' });
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) throw new Error('Razorpay server keys are not configured');
+    const db = getDb();
     const stateSnap = await db.collection('appData').doc('main').get();
-    if (!stateSnap.exists) return send(res, 409, { error: 'Admin payment catalogue is not published yet' });
-    const state = stateSnap.data() || {};
-    const exam = (state.examDatabase || {})[examKey];
-    if (!exam) return send(res, 404, { error: 'Exam not found' });
-
-    let item;
-    if (itemType === 'plan') item = (exam.plans || []).find(x => String(x.id) === String(itemId));
-    if (itemType === 'pdf') item = (exam.pdfs || []).find(x => String(x.id) === String(itemId));
-    const amount = Number(item && item.price);
-    if (!item || !Number.isFinite(amount) || amount <= 0 || amount > 100000)
-      return send(res, 400, { error: 'This paid item is unavailable or has an invalid price' });
-
-    const receipt = `tr_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
-    const payload = {
-      amount: Math.round(amount * 100), currency: 'INR', receipt,
-      notes: { uid: decoded.uid, examKey, itemType, itemId: String(itemId) }
-    };
-    const response = await fetch('https://api.razorpay.com/v1/orders', {
-      method: 'POST',
-      headers: {
-        Authorization: 'Basic ' + Buffer.from(`${keyId}:${keySecret}`).toString('base64'),
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-    const order = await response.json();
-    if (!response.ok) return send(res, 502, { error: order.error?.description || 'Razorpay order creation failed' });
-
-    await db.collection('paymentOrders').doc(order.id).set({
-      uid: decoded.uid, email: decoded.email || null, examKey,
-      itemType, itemId: String(itemId), amount: payload.amount,
-      currency: 'INR', status: 'created', createdAt: admin.firestore.FieldValue.serverTimestamp()
-    });
-    return send(res, 200, { orderId: order.id, amount: order.amount, currency: order.currency, keyId });
-  } catch (error) {
-    console.error('create-order error:', error);
-    return send(res, 500, { error: 'Could not create payment order' });
+    if (!stateSnap.exists) return res.status(404).json({ error: 'Product catalogue is not configured' });
+    const exam = (stateSnap.data().examDatabase || {})[String(examKey)];
+    if (!exam) return res.status(404).json({ error: 'Exam not found' });
+    const list = itemType === 'pdf' ? (exam.pdfs || []) : (exam.plans || []);
+    const product = list.find(x => String(x.id) === String(itemId));
+    if (!product) return res.status(404).json({ error: 'Paid item not found' });
+    const price = Number(product.price);
+    if (!Number.isFinite(price) || price <= 0 || price > 100000) return res.status(400).json({ error: 'Invalid product price' });
+    const amount = Math.round(price * 100);
+    const razorpay = new Razorpay({ key_id: process.env.RAZORPAY_KEY_ID, key_secret: process.env.RAZORPAY_KEY_SECRET });
+    const order = await razorpay.orders.create({ amount, currency: 'INR', receipt: `tr_${Date.now()}_${user.uid.slice(0, 8)}`, notes: { uid: user.uid, examKey: String(examKey), itemType, itemId: String(itemId) } });
+    await db.collection('razorpayOrders').doc(order.id).set({ uid: user.uid, examKey: String(examKey), itemType, itemId: String(itemId), amount, currency: 'INR', status: 'created', createdAt: new Date() });
+    return res.status(200).json({ keyId: process.env.RAZORPAY_KEY_ID, orderId: order.id, amount: order.amount, currency: order.currency });
+  } catch (e) {
+    console.error('create-order:', e);
+    return res.status(e.status || 500).json({ error: e.status ? e.message : 'Could not create payment order' });
   }
 };
