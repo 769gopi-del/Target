@@ -2486,11 +2486,34 @@
       }
 
       function updateAdminPassword() {
-        const pass = document.getElementById("newAdminPassInput").value.trim();
-        if (pass) {
+        const input = document.getElementById("newAdminPassInput");
+        if (!input) {
+          alert("Password field nahi mila. Page refresh karke dobara try karein.");
+          return;
+        }
+
+        const pass = input.value.trim();
+        if (!pass) {
+          alert("Kripya naya Admin Password enter karein.");
+          input.focus();
+          return;
+        }
+        if (pass.length < 6) {
+          alert("Naya password kam se kam 6 characters ka hona chahiye.");
+          input.focus();
+          return;
+        }
+
+        try {
           localStorage.setItem("targetrank_admin_pass", pass);
-          document.getElementById("newAdminPassInput").value = "";
-          alert("Admin password updated!");
+          if (localStorage.getItem("targetrank_admin_pass") !== pass) {
+            throw new Error("Browser storage mein password save nahi hua.");
+          }
+          input.value = "";
+          alert("Admin Password Successfully Updated!");
+        } catch (error) {
+          console.error("Admin password update failed:", error);
+          alert("Password update nahi hua. Browser storage allow karke dobara try karein.");
         }
       }
 
