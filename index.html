@@ -2336,7 +2336,7 @@
 
         try {
           const idToken = await cloudAuth.currentUser.getIdToken(true);
-          const orderResponse = await fetch("https://targetrank.vercel.app/api/create-order", {
+          const orderResponse = await fetch("/api/create-order", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -2350,9 +2350,9 @@
           });
           const orderData = await orderResponse.json().catch(() => ({}));
           if (!orderResponse.ok) {
-            throw new Error(orderData.error || "Razorpay order create nahi ho paya.");
+            throw new Error((orderData.error || "Razorpay order create nahi ho paya.") + " (HTTP " + orderResponse.status + ")");
           }
-          if (!orderData.keyId || !orderData.orderId || !Number(orderData.amount)) {
+          if (!orderData.keyId || !/^rzp_(test|live)_/.test(orderData.keyId) || !orderData.orderId || !Number.isInteger(Number(orderData.amount)) || Number(orderData.amount) <= 0) {
             throw new Error("Backend se Razorpay order details adhuri mili hain. Vercel API response check karein.");
           }
 
@@ -2377,7 +2377,7 @@
               }
               try {
                 const freshToken = await cloudAuth.currentUser.getIdToken(true);
-                const verifyResponse = await fetch("https://targetrank.vercel.app/api/verify-payment", {
+                const verifyResponse = await fetch("/api/verify-payment", {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -2387,7 +2387,7 @@
                 });
                 const verifyData = await verifyResponse.json().catch(() => ({}));
                 if (!verifyResponse.ok || !verifyData.success) {
-                  throw new Error(verifyData.error || "Payment verify nahi ho paya. Support se sampark karein.");
+                  throw new Error((verifyData.error || "Payment verify nahi ho paya. Support se sampark karein.") + " (HTTP " + verifyResponse.status + ")");
                 }
                 await loadCurrentUserSubscriptions();
                 closePaymentModal();
