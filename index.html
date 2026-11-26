@@ -1009,6 +1009,16 @@
             🎁 YouTube Subscribe & Video Watch Auto-Unlock Manager
           </h2>
           <div class="form-group">
+            <label>YouTube Channel Link (Admin can change anytime)</label>
+            <input
+              type="url"
+              id="adminOfferChannelLink"
+              value="https://www.youtube.com/@sonytv7696"
+              placeholder="https://www.youtube.com/@YourChannel"
+            />
+            <small style="color:#854d0e">Ye link students ke Subscribe button aur header YouTube button dono par lagega.</small>
+          </div>
+          <div class="form-group">
             <label>Offer Status:</label>
             <select id="adminOfferActive">
               <option value="yes">Enable YouTube Auto-Unlock (Live)</option>
@@ -1784,6 +1794,8 @@
         document.getElementById("adminOfferActive").value = youtubeOffer.active;
         document.getElementById("adminOfferTextInput").value =
           youtubeOffer.text;
+        const channelInput = document.getElementById("adminOfferChannelLink");
+        if (channelInput) channelInput.value = siteBranding.youtubeLink || "https://www.youtube.com/@sonytv7696";
 
         const banner = document.getElementById("dynamicOfferBanner");
         if (youtubeOffer.active === "yes") {
@@ -2401,8 +2413,9 @@
       }
 
       function claimYouTubeSubscribeReward() {
-        if (siteBranding.youtubeLink) window.open(siteBranding.youtubeLink, "_blank", "noopener");
-        alert("YouTube link open ho gaya. Browser page se subscription ko verify nahi kiya ja sakta, isliye content automatically unlock nahi hua. Verified reward ke liye backend integration chahiye.");
+        const channelUrl = siteBranding.youtubeLink || "https://www.youtube.com/@sonytv7696";
+        window.open(channelUrl, "_blank", "noopener,noreferrer");
+        alert("YouTube channel khol diya gaya hai. Subscribe karne ke baad TargetRank par wapas aayein. Subscription ki asli automatic verification ke liye YouTube Data API + Google OAuth backend setup zaroori hai; sirf button click par content unlock nahi kiya jayega.");
       }
 
       function triggerPdfUnlock(index) {
@@ -2481,6 +2494,22 @@
       }
 
       function saveYouTubeOfferSettings() {
+        const channelField = document.getElementById("adminOfferChannelLink");
+        const enteredChannel = channelField ? channelField.value.trim() : "";
+        if (enteredChannel) {
+          try {
+            const parsedChannel = new URL(enteredChannel);
+            if (parsedChannel.protocol !== "https:" || !/(^|\.)youtube\.com$/.test(parsedChannel.hostname)) throw new Error("Invalid YouTube URL");
+            siteBranding.youtubeLink = parsedChannel.href;
+            localStorage.setItem("targetrank_brand", JSON.stringify(siteBranding));
+          } catch (e) {
+            alert("Sahi YouTube channel URL dalein, jaise https://www.youtube.com/@sonytv7696");
+            return;
+          }
+        } else {
+          alert("YouTube channel link khali nahi chhod sakte.");
+          return;
+        }
         youtubeOffer.active = document.getElementById("adminOfferActive").value;
         youtubeOffer.text = document
           .getElementById("adminOfferTextInput")
@@ -2491,7 +2520,8 @@
         );
         saveDatabase();
         applyYouTubeOfferUI();
-        alert("YouTube Offer Settings Saved!");
+        applyBrandingToUI();
+        alert("YouTube Channel Link aur Offer Settings Save ho gayi hain!");
       }
 
       function saveGlobalGateMode() {
