@@ -1,195 +1,75 @@
 const crypto = require('crypto');
-const { getDb, authenticate } = require('../lib/firebase-admin');
+const { getAdmin } = require('../lib/firebase-admin');
+const { applyCors, send } = require('../lib/http');
 
 module.exports = async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
+  if (applyCors(req, res)) return res.status(204).end();
+  if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
   try {
-    const user = await authenticate(req);
-
-    const {
-      razorpay_order_id: orderId,
-      razorpay_payment_id: paymentId,
-      razorpay_signature: signature
-    } = req.body || {};
-
-    if (!orderId || !paymentId || !signature) {
-      return res.status(400).json({ error: 'Payment response is incomplete' });
-    }
-
     const secret = process.env.RAZORPAY_KEY_SECRET;
+    if (!secret) return send(res, 500, { error: 'Razorpay secret is not configured' });
+    const admin = getAdmin();
+    const authHeader = req.headers.authorization || '';
+    const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+    if (!idToken) return send(res, 401, { error: 'Google login required' });
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    if (!decoded.email_verified) return send(res, 403, { error: 'Verified Google account required' });
 
-    if (!secret) {
-      throw new Error('Razorpay secret is not configured');
-    }
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body || {};
+    if (![razorpay_order_id, razorpay_payment_id, razorpay_signature].every(x => typeof x === 'string' && x))
+      return send(res, 400, { error: 'Missing Razorpay payment details' });
 
-    const expected = crypto
-      .createHmac('sha256', secret)
-      .update(`${orderId}|${paymentId}`)
-      .digest('hex');
+    const expected = crypto.createHmac('sha256', secret)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`).digest('hex');
+    const a = Buffer.from(expected, 'hex');
+    const b = Buffer.from(razorpay_signature, 'hex');
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b))
+      return send(res, 400, { error: 'Payment signature verification failed' });
 
-    const a = Buffer.from(expected);
-    const b = Buffer.from(String(signature));
-
-    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
-      return res.status(400).json({ error: 'Invalid payment signature' });
-    }
-
-    const db = getDb();
-
-    const orderRef = db.collection('razorpayOrders').doc(orderId);
+    const db = admin.firestore();
+    const orderRef = db.collection('paymentOrders').doc(razorpay_order_id);
     const orderSnap = await orderRef.get();
-
-    if (!orderSnap.exists) {
-      return res.status(404).json({ error: 'Order not found' });
-    }
-
+    if (!orderSnap.exists) return send(res, 404, { error: 'Payment order not found' });
     const order = orderSnap.data();
+    if (order.uid !== decoded.uid) return send(res, 403, { error: 'This order belongs to another user' });
+    if (order.status === 'paid') return send(res, 200, { success: true, alreadyVerified: true });
 
-    if (order.uid !== user.uid) {
-      return res.status(403).json({
-        error: 'This order belongs to another account'
-      });
-    }
+    // Confirm Razorpay reports this payment as captured before granting access.
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const paymentResponse = await fetch(`https://api.razorpay.com/v1/payments/${encodeURIComponent(razorpay_payment_id)}`, {
+      headers: { Authorization: 'Basic ' + Buffer.from(`${keyId}:${secret}`).toString('base64') }
+    });
+    const payment = await paymentResponse.json();
+    if (!paymentResponse.ok || payment.order_id !== razorpay_order_id || payment.status !== 'captured' || payment.amount !== order.amount)
+      return send(res, 409, { error: 'Payment is not captured or amount does not match' });
 
-    if (order.status === 'paid') {
-      return res.status(200).json({
-        success: true,
-        alreadyProcessed: true
-      });
-    }
-
-    const auth = Buffer
-      .from(`${process.env.RAZORPAY_KEY_ID}:${secret}`)
-      .toString('base64');
-
-    const paymentResp = await fetch(
-      `https://api.razorpay.com/v1/payments/${encodeURIComponent(paymentId)}`,
-      {
-        headers: {
-          Authorization: `Basic ${auth}`
-        }
-      }
-    );
-
-    const payment = await paymentResp.json();
-
-    if (!paymentResp.ok) {
-      throw new Error('Could not verify payment with Razorpay');
-    }
-
-    if (
-      payment.order_id !== orderId ||
-      payment.amount !== order.amount ||
-      payment.currency !== order.currency ||
-      payment.status !== 'captured'
-    ) {
-      return res.status(400).json({
-        error: 'Payment is not captured or does not match this order'
-      });
-    }
-
-    const userRef = db.collection('users').doc(user.uid);
-
+    const userRef = db.collection('users').doc(decoded.uid);
     await db.runTransaction(async tx => {
       const freshOrder = await tx.get(orderRef);
-
-      if (freshOrder.data().status === 'paid') {
-        return;
-      }
-
+      if (!freshOrder.exists) throw new Error('Order disappeared');
+      if (freshOrder.data().status === 'paid') return;
       const userSnap = await tx.get(userRef);
       const userData = userSnap.exists ? userSnap.data() : {};
-
-      const allSubs = userData.subscriptionsByExam || {};
-
-      const sub = allSubs[order.examKey] || {
-        combo: false,
-        topic: false,
-        full: false,
-        pdfs: {}
-      };
-
-      sub.pdfs = sub.pdfs || {};
-
-      if (order.itemType === 'pdf') {
-        sub.pdfs[String(order.itemId)] = true;
-      } else {
-        const stateSnap = await tx.get(
-          db.collection('appData').doc('main')
-        );
-
-        const exam = (
-          ((stateSnap.data() || {}).examDatabase || {})[order.examKey]
-        ) || {};
-
-        const plan = (exam.plans || []).find(
-          p => String(p.id) === String(order.itemId)
-        );
-
-        if (!plan) {
-          throw new Error('Purchased plan no longer exists');
-        }
-
-        const category = String(plan.category || '').toLowerCase();
-
-        if (category === 'combo') {
-          sub.combo = true;
-          sub.topic = true;
-          sub.full = true;
-        } else if (['topic', 'full'].includes(category)) {
-          sub[category] = true;
-        } else {
-          sub[category] = true;
-        }
+      const subs = userData.subscriptionsByExam || {};
+      const examSubs = subs[order.examKey] || { combo: false, topic: false, full: false, pdfs: {} };
+      if (!examSubs.pdfs) examSubs.pdfs = {};
+      if (order.itemType === 'pdf') examSubs.pdfs[String(order.itemId)] = true;
+      else {
+        const stateSnap = await tx.get(db.collection('appData').doc('main'));
+        const exam = ((stateSnap.data() || {}).examDatabase || {})[order.examKey];
+        const plan = (exam?.plans || []).find(x => String(x.id) === String(order.itemId));
+        if (!plan) throw new Error('Purchased plan no longer exists');
+        if (plan.category === 'combo') { examSubs.combo = true; examSubs.topic = true; examSubs.full = true; }
+        else if (['topic', 'full'].includes(plan.category)) examSubs[plan.category] = true;
+        else throw new Error('Unsupported plan category');
       }
-
-      allSubs[order.examKey] = sub;
-
-      tx.set(
-        userRef,
-        {
-          subscriptionsByExam: allSubs,
-          updatedAt: new Date()
-        },
-        { merge: true }
-      );
-
-      tx.set(
-        orderRef,
-        {
-          status: 'paid',
-          paymentId,
-          paidAt: new Date()
-        },
-        { merge: true }
-      );
-
-      tx.set(
-        db.collection('payments').doc(paymentId),
-        {
-          uid: user.uid,
-          orderId,
-          amount: order.amount,
-          currency: order.currency,
-          examKey: order.examKey,
-          itemType: order.itemType,
-          itemId: order.itemId,
-          status: 'captured',
-          createdAt: new Date()
-        }
-      );
+      subs[order.examKey] = examSubs;
+      tx.set(userRef, { subscriptionsByExam: subs, email: decoded.email || null }, { merge: true });
+      tx.update(orderRef, { status: 'paid', paymentId: razorpay_payment_id, verifiedAt: admin.firestore.FieldValue.serverTimestamp() });
     });
-
-    return res.status(200).json({ success: true });
-
-  } catch (e) {
-    console.error('verify-payment:', e);
-
-    return res.status(e.status || 500).json({
-      error: e.status ? e.message : (e.message || 'Payment verification failed')
-    });
+    return send(res, 200, { success: true, message: 'Payment verified and course unlocked' });
+  } catch (error) {
+    console.error('verify-payment error:', error);
+    return send(res, 500, { error: 'Could not verify payment' });
   }
 };
